@@ -57,7 +57,7 @@ function TeamGraph() {
           <p className="text-slate-600">Performance summary and member contribution for {team.name}.</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs uppercase tracking-wide text-slate-500">Total Score</p>
             <p className="mt-2 text-2xl font-bold text-slate-900">{numberFormatter.format(team.totalScore || 0)}</p>
@@ -65,12 +65,6 @@ function TeamGraph() {
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs uppercase tracking-wide text-slate-500">Solved Challenges</p>
             <p className="mt-2 text-2xl font-bold text-slate-900">{numberFormatter.format(team.solvedChallenges?.length || 0)}</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Invite Code</p>
-            <p className="mt-2 text-lg font-semibold text-slate-900">
-              {team.inviteCode || 'N/A'}
-            </p>
           </div>
         </div>
 
@@ -88,7 +82,10 @@ function TeamGraph() {
               <div key={member.userId} className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3">
                 <div>
                   <p className="font-semibold text-slate-900">{member.username}</p>
-                  <p className="text-sm text-slate-500">{member.submissions} successful submissions</p>
+                  <p className="text-sm text-slate-500">
+                    {member.submissions} successful submissions
+                    {' '}({numberFormatter.format(member.contributionPercent || 0)}% contribution)
+                  </p>
                 </div>
                 <p className="text-lg font-bold text-blue-700">{numberFormatter.format(member.points)} pts</p>
               </div>

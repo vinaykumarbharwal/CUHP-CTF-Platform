@@ -1,22 +1,46 @@
-﻿node_modules/
+﻿# Dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+
+# Environment files (root + workspaces)
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# Build output
 dist/
 build/
 out/
 .next/
+
+# Test/coverage
+coverage/
+
+# Tool caches
+.cache/
+.turbo/
+
+# Editor/OS
 .vscode/
 .idea/
 *.swp
 *.swo
 .DS_Store
 Thumbs.db
-logs/
-*.log
-coverage/
+
+# App/runtime artifacts
 uploads/
 *.bak

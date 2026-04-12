@@ -154,6 +154,7 @@ Common errors:
 - `404`: `{"error":"Invalid invite code"}`
 - `400`: `{"error":"Team is already full"}`
 - `400`: `{"error":"You are already in a team"}`
+- `403`: `{"error":"Team joining is closed after CTF starts"}`
 
 #### GET /teams/:id
 Get team details by team ID.
@@ -184,7 +185,8 @@ Additional field:
 			"userId": "<user_id>",
 			"username": "player1",
 			"points": 300,
-			"submissions": 3
+			"submissions": 3,
+			"contributionPercent": 75
 		}
 	],
 	"unattributedSubmissionStats": {

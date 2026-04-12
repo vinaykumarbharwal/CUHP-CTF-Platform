@@ -52,8 +52,22 @@ function Dashboard() {
       setInviteCode('');
       toast.success('Successfully joined team!');
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Failed to join team');
+      const status = error.response?.status;
+      const message = error.response?.data?.error || 'Failed to join team';
+      if (status === 403) {
+        toast.error('Joining is disabled because the CTF has started');
+        return;
+      }
+
+      toast.error(message);
     }
+  };
+
+  const normalizeId = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object' && value.$oid) return String(value.$oid);
+    return String(value);
   };
 
   const getMemberData = (member) => {
@@ -69,12 +83,12 @@ function Dashboard() {
   };
 
   const getMemberStats = (member) => {
-    const memberId = member?._id;
+    const memberId = normalizeId(member?._id);
     if (!memberId) {
       return { points: 0, submissions: 0 };
     }
 
-    const stats = team?.memberSubmissionStats?.find((item) => item.userId === memberId);
+    const stats = team?.memberSubmissionStats?.find((item) => normalizeId(item.userId) === memberId);
     return {
       points: stats?.points || 0,
       submissions: stats?.submissions || 0

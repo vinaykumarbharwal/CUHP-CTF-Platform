@@ -6,6 +6,20 @@ const Team = require('../models/Team');
 const User = require('../models/User');
 const Submission = require('../models/Submission');
 
+function hasCtfStarted() {
+  const startValue = process.env.CTF_START_TIME;
+  if (!startValue) {
+    return false;
+  }
+
+  const startTime = new Date(startValue);
+  if (Number.isNaN(startTime.getTime())) {
+    return false;
+  }
+
+  return Date.now() >= startTime.getTime();
+}
+
 async function attachMemberSubmissionStats(teamDoc) {
   const team = teamDoc?.toObject ? teamDoc.toObject() : teamDoc;
   if (!team) return team;
@@ -58,11 +72,17 @@ async function attachMemberSubmissionStats(teamDoc) {
   team.memberSubmissionStats = (team.members || []).map((member) => {
     const memberId = String(member._id || member);
     const memberStats = statsMap[memberId] || { points: 0, submissions: 0 };
+    const totalScore = team.totalScore || 0;
+    const contributionPercent = totalScore > 0
+      ? Number(((memberStats.points / totalScore) * 100).toFixed(2))
+      : 0;
+
     return {
       userId: memberId,
       username: member.username || 'Member',
       points: memberStats.points,
-      submissions: memberStats.submissions
+      submissions: memberStats.submissions,
+      contributionPercent
     };
   });
 
@@ -108,6 +128,11 @@ router.post('/create', auth, async (req, res) => {
 router.post('/join', auth, async (req, res) => {
   try {
     const { inviteCode } = req.body;
+
+    if (hasCtfStarted()) {
+      return res.status(403).json({ error: 'Team joining is closed after CTF starts' });
+    }
+
     const user = await User.findById(req.userId);
 
     if (user.teamId) {
