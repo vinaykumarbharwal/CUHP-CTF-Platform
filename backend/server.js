@@ -1,8 +1,12 @@
 ﻿const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
+const { connectDB } = require('./config/database');
+const Challenge = require('./models/Challenge');
+const User = require('./models/User');
+const Team = require('./models/Team');
+const challengeSeedData = require('./data/challenges');
 
 dotenv.config();
 
@@ -32,12 +36,58 @@ app.use('/api/submit', submissionRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/graph', graphRoutes);
 
-mongoose
-  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/cuhp_ctf')
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
-
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+async function seedDemoUserAndTeamIfNeeded() {
+  const userCount = await User.countDocuments();
+  if (userCount > 0) {
+    return;
+  }
+
+  const demoUser = new User({
+    username: 'demo',
+    email: 'demo@cuhp.local',
+    password: 'Password123!'
+  });
+
+  await demoUser.save();
+
+  const demoTeam = new Team({
+    name: 'Demo Team',
+    inviteCode: 'CUHPDEMO',
+    members: [demoUser._id]
+  });
+
+  await demoTeam.save();
+
+  demoUser.teamId = demoTeam._id;
+  await demoUser.save();
+
+  console.log('Default demo user/team inserted');
+  console.log('Demo login: demo@cuhp.local / Password123!');
+  console.log('Demo team invite code: CUHPDEMO');
+}
+
+async function startServer() {
+  try {
+    const { mode } = await connectDB();
+    console.log(`Database mode: ${mode}`);
+
+    await seedDemoUserAndTeamIfNeeded();
+
+    const challengeCount = await Challenge.countDocuments();
+    if (challengeCount === 0) {
+      await Challenge.insertMany(challengeSeedData);
+      console.log('Default challenges inserted');
+    }
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
