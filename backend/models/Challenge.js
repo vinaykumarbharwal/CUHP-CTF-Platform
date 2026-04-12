@@ -1,0 +1,41 @@
+﻿const mongoose = require('mongoose');
+
+const challengeSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  category: {
+    type: String,
+    enum: ['Web', 'Crypto', 'Binary', 'OSINT', 'Misc'],
+    required: true
+  },
+  difficulty: {
+    type: String,
+    enum: ['Easy', 'Medium', 'Hard', 'Expert'],
+    required: true
+  },
+  points: {
+    type: Number,
+    required: true
+  },
+  flag: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  hint: {
+    type: String,
+    default: null
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+module.exports = mongoose.model('Challenge', challengeSchema);
