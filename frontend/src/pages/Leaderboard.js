@@ -54,26 +54,26 @@ function Leaderboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Leaderboard</h1>
 
-        <div className="rounded-xl border border-slate-700 bg-slate-900 shadow-lg p-4 sm:p-5 mb-4">
-          <h2 className="text-lg sm:text-xl font-semibold text-slate-100 mb-3">Score Progress</h2>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-slate-900 mb-3">Score Progress</h2>
           <AllTeamsProgressChart series={graphSeries} />
         </div>
 
-        <div className="rounded-lg border border-slate-700 bg-slate-900 shadow-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-slate-700">
-            <thead className="bg-slate-800">
+        <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Place</th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Team</th>
-                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">Score</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Place</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
               </tr>
             </thead>
-            <tbody className="bg-slate-900 divide-y divide-slate-700">
+            <tbody className="bg-white divide-y divide-gray-200">
               {teams.map((team) => (
-                <tr key={team.id} className="hover:bg-slate-800/60 transition-colors">
+                <tr key={team.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 sm:px-6 py-4 whitespace-nowrap"><div className="flex items-center">{getRankIcon(team.rank)}</div></td>
-                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-blue-300">{team.name}</div></td>
-                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap"><div className="text-lg font-semibold text-slate-100">{team.totalScore}</div></td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{team.name}</div></td>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap"><div className="text-lg font-semibold text-blue-600">{team.totalScore}</div></td>
                 </tr>
               ))}
             </tbody>

@@ -29,16 +29,16 @@ function ProgressTooltip({ active, payload, label }) {
     .slice(0, 8);
 
   return (
-    <div className="rounded-xl border border-slate-600 bg-slate-900/95 shadow-xl p-3 min-w-52">
-      <p className="text-xs uppercase tracking-wide text-slate-300 mb-2">{format(new Date(label), 'MMM dd, yyyy HH:mm')}</p>
+    <div className="rounded-xl border border-slate-200 bg-white/95 shadow-xl p-3 min-w-52">
+      <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">{format(new Date(label), 'MMM dd, yyyy HH:mm')}</p>
       <div className="space-y-1.5">
         {sortedPayload.map((entry) => (
           <div key={entry.dataKey} className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-sm text-slate-100 truncate">{entry.name}</span>
+              <span className="text-sm text-slate-700 truncate">{entry.name}</span>
             </div>
-            <span className="text-sm font-semibold text-slate-100">{numberFormatter.format(entry.value || 0)}</span>
+            <span className="text-sm font-semibold text-slate-900">{numberFormatter.format(entry.value || 0)}</span>
           </div>
         ))}
       </div>
@@ -116,14 +116,14 @@ function AllTeamsProgressChart({ series = [] }) {
   );
 
   if (!graphData.length) {
-    return <p className="text-slate-300">No submissions yet.</p>;
+    return <p className="text-gray-500">No submissions yet.</p>;
   }
 
   return (
     <>
       <ResponsiveContainer width="100%" height={360}>
         <LineChart data={graphData} margin={{ top: 16, right: 10, left: 0, bottom: 22 }}>
-          <CartesianGrid strokeDasharray="4 4" stroke="#334155" />
+          <CartesianGrid strokeDasharray="4 4" stroke="#E2E8F0" />
           <XAxis
             dataKey="timestamp"
             type="number"
@@ -131,16 +131,16 @@ function AllTeamsProgressChart({ series = [] }) {
             padding={{ left: 0, right: 0 }}
             allowDataOverflow
             tickFormatter={(value) => format(new Date(value), 'HH:mm')}
-            tick={{ fontSize: 11, fill: '#CBD5E1' }}
+            tick={{ fontSize: 11, fill: '#475569' }}
             tickLine={false}
-            axisLine={{ stroke: '#64748B' }}
+            axisLine={{ stroke: '#CBD5E1' }}
             minTickGap={32}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: '#CBD5E1' }}
+            tick={{ fontSize: 11, fill: '#475569' }}
             tickFormatter={(value) => numberFormatter.format(value)}
             tickLine={false}
-            axisLine={{ stroke: '#64748B' }}
+            axisLine={{ stroke: '#CBD5E1' }}
             width={70}
           />
           <Tooltip content={<ProgressTooltip />} />
@@ -148,7 +148,7 @@ function AllTeamsProgressChart({ series = [] }) {
             verticalAlign="bottom"
             align="left"
             iconType="circle"
-            wrapperStyle={{ fontSize: '11px', color: '#E2E8F0', paddingTop: '10px' }}
+            wrapperStyle={{ fontSize: '11px', color: '#475569', paddingTop: '10px' }}
           />
           {normalizedSeries.map((team) => (
             <Line
