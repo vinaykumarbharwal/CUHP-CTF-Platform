@@ -4,6 +4,8 @@ import { Trophy, Medal, Loader2 } from 'lucide-react';
 import AllTeamsProgressChart from '../components/Graph/AllTeamsProgressChart';
 import api from '../services/api';
 
+const COMPETITION_END_TIME = new Date('2026-04-13T03:02:00').getTime();
+
 function Leaderboard() {
   const [teams, setTeams] = useState([]);
   const [graphSeries, setGraphSeries] = useState([]);
@@ -11,7 +13,23 @@ function Leaderboard() {
 
   useEffect(() => {
     fetchLeaderboard();
-    const interval = setInterval(fetchLeaderboard, 30000);
+    
+    // Check if competition has already ended
+    const now = Date.now();
+    if (now >= COMPETITION_END_TIME) {
+      console.log('Competition ended. Live updates disabled.');
+      return;
+    }
+
+    const interval = setInterval(() => {
+      if (Date.now() >= COMPETITION_END_TIME) {
+        clearInterval(interval);
+        console.log('Competition finished. Stopping updates.');
+        return;
+      }
+      fetchLeaderboard();
+    }, 30000);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -50,6 +68,8 @@ function Leaderboard() {
     );
   }
 
+  const isLive = Date.now() < COMPETITION_END_TIME;
+
   return (
     <Layout>
       <div className="py-8">
@@ -64,8 +84,17 @@ function Leaderboard() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-black uppercase tracking-widest text-cyber-blue">Score Progress</h2>
             <div className="flex items-center space-x-2">
-               <div className="w-2 h-2 rounded-full bg-cyber-green animate-pulse"></div>
-               <span className="text-[10px] font-mono text-white/40 uppercase">Live Update</span>
+               {isLive ? (
+                 <>
+                   <div className="w-2 h-2 rounded-full bg-cyber-green animate-pulse"></div>
+                   <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Live Update</span>
+                 </>
+               ) : (
+                 <>
+                   <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                   <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest">Final Results</span>
+                 </>
+               )}
             </div>
           </div>
           <div className="bg-black/30 rounded-lg p-4 border border-white/5">
