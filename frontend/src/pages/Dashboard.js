@@ -68,6 +68,19 @@ function Dashboard() {
     return { key, username, email };
   };
 
+  const getMemberStats = (member) => {
+    const memberId = member?._id;
+    if (!memberId) {
+      return { points: 0, submissions: 0 };
+    }
+
+    const stats = team?.memberSubmissionStats?.find((item) => item.userId === memberId);
+    return {
+      points: stats?.points || 0,
+      submissions: stats?.submissions || 0
+    };
+  };
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -109,6 +122,10 @@ function Dashboard() {
                     <div>
                       <p className="font-medium">{getMemberData(member).username}</p>
                       <p className="text-sm text-gray-500">{getMemberData(member).email}</p>
+                      <p className="text-sm text-blue-700">
+                        Submission points: <span className="font-semibold">{getMemberStats(member).points}</span>
+                        {' '}({getMemberStats(member).submissions} solves)
+                      </p>
                     </div>
                   </div>
                 ))}

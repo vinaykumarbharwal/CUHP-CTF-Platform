@@ -43,6 +43,7 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
 
     const submission = new Submission({
       teamId: team._id,
+      submittedBy: user._id,
       challengeId: challenge._id,
       points: challenge.points
     });

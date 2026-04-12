@@ -53,6 +53,8 @@ function Challenges() {
     return team?.solvedChallenges?.some((sc) => sc.challengeId?._id === challengeId);
   };
 
+  const isSelectedChallengeSolved = selectedChallenge ? isSolved(selectedChallenge._id) : false;
+
   const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc'];
   const filteredChallenges = category === 'All' ? challenges : challenges.filter((c) => c.category === category);
 
@@ -92,7 +94,7 @@ function Challenges() {
               className={`bg-white rounded-lg shadow-md p-6 cursor-pointer transition-transform hover:scale-105 ${
                 isSolved(challenge._id) ? 'opacity-75' : ''
               }`}
-              onClick={() => !isSolved(challenge._id) && setSelectedChallenge(challenge)}
+              onClick={() => setSelectedChallenge(challenge)}
             >
               <div className="flex justify-between items-start mb-3">
                 <h3 className="text-xl font-semibold">{challenge.title}</h3>
@@ -103,6 +105,9 @@ function Challenges() {
               <p className="text-gray-600 mb-2">{challenge.category}</p>
               <p className="text-2xl font-bold text-blue-600">{challenge.points} pts</p>
               {isSolved(challenge._id) && <div className="mt-3 text-green-600 text-sm font-medium">Solved</div>}
+              <div className="mt-2 text-sm text-gray-600">
+                Solved by: <span className="font-medium">{challenge.solvedCount || 0}</span> team(s)
+              </div>
             </div>
           ))}
         </div>
@@ -114,16 +119,31 @@ function Challenges() {
             <h2 className="text-xl font-semibold mb-4">{selectedChallenge.title}</h2>
             <p className="text-gray-600 mb-4">{selectedChallenge.description}</p>
             {selectedChallenge.hint && <p className="text-yellow-600 text-sm mb-4">Hint: {selectedChallenge.hint}</p>}
-            <input
-              type="text"
-              placeholder="Flag (CUHP{...})"
-              value={flag}
-              onChange={(e) => setFlag(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 mb-4"
-            />
+            <div className="mb-3 text-sm text-gray-600">
+              Solved by teams:{' '}
+              {selectedChallenge.solvedByTeams?.length
+                ? selectedChallenge.solvedByTeams.join(', ')
+                : 'None yet'}
+            </div>
+
+            {isSelectedChallengeSolved ? (
+              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+                This challenge is already solved by your team.
+              </div>
+            ) : (
+              <input
+                type="text"
+                placeholder="Flag (CUHP{...})"
+                value={flag}
+                onChange={(e) => setFlag(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 mb-4"
+              />
+            )}
             <div className="flex justify-end space-x-2">
               <button onClick={() => setSelectedChallenge(null)} className="px-4 py-2 text-gray-600">Cancel</button>
-              <button onClick={submitFlag} className="px-4 py-2 bg-blue-600 text-white rounded">Submit</button>
+              {!isSelectedChallengeSolved && (
+                <button onClick={submitFlag} className="px-4 py-2 bg-blue-600 text-white rounded">Submit</button>
+              )}
             </div>
           </div>
         </div>

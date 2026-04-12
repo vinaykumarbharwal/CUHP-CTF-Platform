@@ -174,7 +174,21 @@ Get the authenticated user's team.
 
 Auth required: yes
 
-Success response (`200`): team object with populated members and solved challenges.
+Success response (`200`): team object with populated members, solved challenges, and per-member submission stats.
+
+Additional field:
+```json
+{
+	"memberSubmissionStats": [
+		{
+			"userId": "<user_id>",
+			"username": "player1",
+			"points": 300,
+			"submissions": 3
+		}
+	]
+}
+```
 
 Not in a team (`404`):
 ```json
@@ -200,7 +214,9 @@ Success response (`200`):
 		"category": "Web",
 		"difficulty": "Easy",
 		"points": 100,
-		"hint": null
+		"hint": null,
+		"solvedByTeams": ["Team Alpha"],
+		"solvedCount": 1
 	}
 ]
 ```

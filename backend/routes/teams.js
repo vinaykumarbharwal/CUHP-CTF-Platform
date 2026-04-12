@@ -4,6 +4,50 @@ const crypto = require('crypto');
 const auth = require('../middleware/auth');
 const Team = require('../models/Team');
 const User = require('../models/User');
+const Submission = require('../models/Submission');
+
+async function attachMemberSubmissionStats(teamDoc) {
+  const team = teamDoc?.toObject ? teamDoc.toObject() : teamDoc;
+  if (!team) return team;
+
+  const stats = await Submission.aggregate([
+    {
+      $match: {
+        teamId: team._id,
+        submittedBy: { $ne: null },
+        isCorrect: true
+      }
+    },
+    {
+      $group: {
+        _id: '$submittedBy',
+        points: { $sum: '$points' },
+        submissions: { $sum: 1 }
+      }
+    }
+  ]);
+
+  const statsMap = stats.reduce((acc, item) => {
+    acc[String(item._id)] = {
+      points: item.points,
+      submissions: item.submissions
+    };
+    return acc;
+  }, {});
+
+  team.memberSubmissionStats = (team.members || []).map((member) => {
+    const memberId = String(member._id || member);
+    const memberStats = statsMap[memberId] || { points: 0, submissions: 0 };
+    return {
+      userId: memberId,
+      username: member.username || 'Member',
+      points: memberStats.points,
+      submissions: memberStats.submissions
+    };
+  });
+
+  return team;
+}
 
 router.post('/create', auth, async (req, res) => {
   try {
@@ -76,7 +120,8 @@ router.get('/:id', auth, async (req, res) => {
       return res.status(404).json({ error: 'Team not found' });
     }
 
-    return res.json(team);
+    const teamWithStats = await attachMemberSubmissionStats(team);
+    return res.json(teamWithStats);
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });
   }
@@ -93,7 +138,8 @@ router.get('/my/team', auth, async (req, res) => {
       .populate('members', 'username email')
       .populate('solvedChallenges.challengeId');
 
-    return res.json(team);
+    const teamWithStats = await attachMemberSubmissionStats(team);
+    return res.json(teamWithStats);
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });
   }
