@@ -12,11 +12,13 @@ CUHP-CTF-Platform
 - Flag submission with rate limiting
 - Live leaderboard with tie-breaking
 - Team score progression graph over time
+- Click to expand team rows and view member names on the leaderboard
+- Team progress insights with score breakdown and recent solves
 
 ## Tech Stack
 - Backend: Node.js, Express, MongoDB, Mongoose
 - Frontend: React 18, Tailwind CSS, Recharts
-- Tooling: npm workspaces, nodemon
+- Tooling: npm workspaces, concurrently, nodemon, react-scripts
 
 ## Prerequisites
 - Node.js LTS
@@ -28,6 +30,8 @@ CUHP-CTF-Platform
 ### Backend ([backend/.env](backend/.env))
 ```env
 MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/cuhp_ctf?retryWrites=true&w=majority
+MONGODB_LOCAL_URI=mongodb://127.0.0.1:27017/cuhp_ctf
+ALLOW_LOCAL_MONGO_FALLBACK=true
 JWT_SECRET=your_super_secret_jwt_key_change_this
 PORT=5000
 ```
@@ -37,6 +41,7 @@ MongoDB Atlas quick setup:
 2. Create a database user.
 3. Add your IP address (or 0.0.0.0/0 for testing) in Network Access.
 4. Copy the SRV connection string and replace `MONGODB_URI`.
+5. If you are developing locally without Atlas, leave `MONGODB_URI` empty and use the local fallback values above.
 
 ### Frontend ([frontend/.env](frontend/.env))
 ```env
@@ -58,7 +63,7 @@ npm run install:all
 ## Run (Development)
 
 Real-time reload is enabled by default in development:
-- Frontend uses React Fast Refresh and polling-based file watching for reliable reload on Windows.
+- Frontend uses React Fast Refresh.
 - Backend uses nodemon with legacy watch mode, so API changes auto-restart the server.
 
 ### Option A: Run both from root
@@ -101,6 +106,8 @@ npm run seed
 - `POST /api/submit`
 - `GET /api/leaderboard`
 - `GET /api/graph/my-team`
+- `GET /api/graph/team/:teamId`
+- `GET /api/graph/all-teams`
 
 For complete API details, see [docs/API.md](docs/API.md).
 
@@ -112,8 +119,7 @@ CUHP-CTF-Platform/
 ├── database/
 ├── docs/
 ├── docker/
-├── scripts/
-└── .github/workflows/
+└── README.md
 ```
 
 ## Troubleshooting
@@ -122,7 +128,7 @@ CUHP-CTF-Platform/
 	- Ensure the cluster allows your IP in Atlas Network Access.
 	- Confirm the database user has readWrite permissions.
 	- If `querySrv ECONNREFUSED` appears, try a non-SRV `mongodb://...` URI with explicit shard hosts.
-	- On macOS/Linux development, the backend now falls back to `MONGODB_LOCAL_URI` when Atlas is unreachable and `ALLOW_LOCAL_MONGO_FALLBACK=true`.
+	- The backend falls back to `MONGODB_LOCAL_URI` when Atlas is unreachable and `ALLOW_LOCAL_MONGO_FALLBACK=true`.
 	- Start local MongoDB if using fallback (`mongod --dbpath <path>` or `brew services start mongodb-community`).
 - Frontend cannot reach backend:
 	- Ensure backend is running and `REACT_APP_API_URL` is correct.
@@ -137,6 +143,15 @@ CUHP-CTF-Platform/
 	- Clear localStorage in browser and login again.
 - Create Team runtime error (`Cannot read properties of undefined (reading '0')`):
 	- Pull latest frontend changes and hard refresh browser (`Ctrl+F5`).
+
+## Git Ignore
+The repository already ignores the main generated and local-only files, including:
+- `node_modules/`
+- `.env` files in root, backend, and frontend
+- build output folders such as `build/`, `dist/`, and `out/`
+- logs, caches, editor settings, and upload artifacts
+
+No `.gitignore` changes were needed for this update.
 
 ## License
 MIT
