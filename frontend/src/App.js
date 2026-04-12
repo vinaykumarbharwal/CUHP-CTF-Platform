@@ -12,7 +12,7 @@ import TeamGraph from './pages/TeamGraph';
 
 function App() {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <Toaster position="top-right" />
         <Routes>
