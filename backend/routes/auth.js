@@ -4,9 +4,13 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 router.post('/register', [
   body('username').isLength({ min: 3 }).trim(),
-  body('email').isEmail().normalizeEmail(),
+  body('email').isEmail().trim().toLowerCase(),
   body('password').isLength({ min: 6 })
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -41,7 +45,7 @@ router.post('/register', [
 });
 
 router.post('/login', [
-  body('email').isEmail().normalizeEmail(),
+  body('email').notEmpty().trim(),
   body('password').notEmpty()
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -51,8 +55,17 @@ router.post('/login', [
 
   try {
     const { email, password } = req.body;
+    const identifier = String(email || '').trim();
+    const identifierRegex = new RegExp(`^${escapeRegex(identifier)}$`, 'i');
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      $or: [
+        { email: identifier },
+        { username: identifier },
+        { email: identifierRegex },
+        { username: identifierRegex }
+      ]
+    });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }

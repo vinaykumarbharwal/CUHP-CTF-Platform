@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-        email: email.trim().toLowerCase(),
+        email: email.trim(),
         password
       });
       const { token: nextToken, user: nextUser } = response.data;

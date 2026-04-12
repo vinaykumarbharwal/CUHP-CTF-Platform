@@ -124,6 +124,9 @@ CUHP-CTF-Platform/
 	- Use a unique username and email.
 	- Password must be at least 6 characters.
 	- Check toast message for exact backend error.
+- Login shows "Invalid credentials":
+	- Ensure you are using the account email (not username) and correct password.
+	- If using older data, log in once after backend restart so legacy plaintext passwords are auto-upgraded.
 - Invalid/expired token:
 	- Clear localStorage in browser and login again.
 - Create Team runtime error (`Cannot read properties of undefined (reading '0')`):

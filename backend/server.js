@@ -4,8 +4,6 @@ const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
 const { connectDB } = require('./config/database');
 const Challenge = require('./models/Challenge');
-const User = require('./models/User');
-const Team = require('./models/Team');
 const challengeSeedData = require('./data/challenges');
 
 dotenv.config();
@@ -38,42 +36,10 @@ app.use('/api/graph', graphRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-async function seedDemoUserAndTeamIfNeeded() {
-  const userCount = await User.countDocuments();
-  if (userCount > 0) {
-    return;
-  }
-
-  const demoUser = new User({
-    username: 'demo',
-    email: 'demo@cuhp.local',
-    password: 'Password123!'
-  });
-
-  await demoUser.save();
-
-  const demoTeam = new Team({
-    name: 'Demo Team',
-    inviteCode: 'CUHPDEMO',
-    members: [demoUser._id]
-  });
-
-  await demoTeam.save();
-
-  demoUser.teamId = demoTeam._id;
-  await demoUser.save();
-
-  console.log('Default demo user/team inserted');
-  console.log('Demo login: demo@cuhp.local / Password123!');
-  console.log('Demo team invite code: CUHPDEMO');
-}
-
 async function startServer() {
   try {
     const { mode } = await connectDB();
     console.log(`Database mode: ${mode}`);
-
-    await seedDemoUserAndTeamIfNeeded();
 
     const challengeCount = await Challenge.countDocuments();
     if (challengeCount === 0) {

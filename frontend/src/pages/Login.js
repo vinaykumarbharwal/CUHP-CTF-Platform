@@ -11,7 +11,7 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await login(email.trim().toLowerCase(), password);
+    const success = await login(email.trim(), password);
     if (success) {
       navigate('/');
     }

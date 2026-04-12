@@ -36,7 +36,19 @@ userSchema.pre('save', async function (next) {
 });
 
 userSchema.methods.comparePassword = async function (password) {
-  return bcrypt.compare(password, this.password);
+  const stored = this.password || '';
+
+  // Backward compatibility: accept legacy plaintext once, then upgrade to bcrypt.
+  if (!stored.startsWith('$2') && !stored.startsWith('$2a$') && !stored.startsWith('$2b$') && !stored.startsWith('$2y$')) {
+    if (password !== stored) {
+      return false;
+    }
+    this.password = password;
+    await this.save();
+    return true;
+  }
+
+  return bcrypt.compare(password, stored);
 };
 
 module.exports = mongoose.model('User', userSchema);
