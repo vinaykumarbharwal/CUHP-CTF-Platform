@@ -122,6 +122,8 @@ CUHP-CTF-Platform/
 	- Ensure the cluster allows your IP in Atlas Network Access.
 	- Confirm the database user has readWrite permissions.
 	- If `querySrv ECONNREFUSED` appears, try a non-SRV `mongodb://...` URI with explicit shard hosts.
+	- On macOS/Linux development, the backend now falls back to `MONGODB_LOCAL_URI` when Atlas is unreachable and `ALLOW_LOCAL_MONGO_FALLBACK=true`.
+	- Start local MongoDB if using fallback (`mongod --dbpath <path>` or `brew services start mongodb-community`).
 - Frontend cannot reach backend:
 	- Ensure backend is running and `REACT_APP_API_URL` is correct.
 - Registration failed:
