@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import Layout from '../components/Layout';
+import api from '../services/api';
 
 function Challenges() {
   const [challenges, setChallenges] = useState([]);
@@ -17,7 +17,7 @@ function Challenges() {
 
   const fetchChallenges = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/challenges`);
+      const response = await api.get('/challenges');
       setChallenges(response.data);
     } catch (error) {
       toast.error('Failed to load challenges');
@@ -26,7 +26,7 @@ function Challenges() {
 
   const fetchTeam = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/teams/my/team`);
+      const response = await api.get('/teams/my/team');
       setTeam(response.data);
     } catch (error) {
       console.error('Error fetching team:', error);
@@ -35,7 +35,7 @@ function Challenges() {
 
   const submitFlag = async () => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/submit`, {
+      const response = await api.post('/submit', {
         challengeId: selectedChallenge._id,
         flag
       });

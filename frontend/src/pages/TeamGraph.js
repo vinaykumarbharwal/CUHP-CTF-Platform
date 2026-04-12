@@ -1,8 +1,8 @@
 ﻿import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { format } from 'date-fns';
 import Layout from '../components/Layout';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 const numberFormatter = new Intl.NumberFormat('en-US');
 
@@ -16,7 +16,7 @@ function TeamGraph() {
 
   const fetchTeamInsights = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/teams/my/team`);
+      const response = await api.get('/teams/my/team');
       setTeam(response.data);
     } catch (error) {
       toast.error(error.response?.status === 404 ? 'Join a team to view progress insights' : 'Failed to load team insights');

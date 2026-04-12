@@ -1,8 +1,8 @@
 ﻿import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import Layout from '../components/Layout';
 import { Trophy, Medal } from 'lucide-react';
 import AllTeamsProgressChart from '../components/Graph/AllTeamsProgressChart';
+import api from '../services/api';
 
 function Leaderboard() {
   const [teams, setTeams] = useState([]);
@@ -18,8 +18,8 @@ function Leaderboard() {
   const fetchLeaderboard = async () => {
     try {
       const [leaderboardResponse, graphResponse] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_URL}/leaderboard`),
-        axios.get(`${process.env.REACT_APP_API_URL}/graph/all-teams`)
+        api.get('/leaderboard'),
+        api.get('/graph/all-teams')
       ]);
       setTeams(leaderboardResponse.data);
       setGraphSeries(Array.isArray(graphResponse.data) ? graphResponse.data : []);

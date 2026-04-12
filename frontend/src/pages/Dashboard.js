@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import Layout from '../components/Layout';
+import api from '../services/api';
 
 function Dashboard() {
   const [team, setTeam] = useState(null);
@@ -16,7 +16,7 @@ function Dashboard() {
 
   const fetchTeam = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/teams/my/team`);
+      const response = await api.get('/teams/my/team');
       setTeam(response.data);
     } catch (error) {
       if (error.response?.status !== 404) {
@@ -27,7 +27,7 @@ function Dashboard() {
 
   const createTeam = async () => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/teams/create`, {
+      const response = await api.post('/teams/create', {
         name: teamName
       });
       setTeam(response.data.team);
@@ -43,7 +43,7 @@ function Dashboard() {
 
   const joinTeam = async () => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/teams/join`, {
+      const response = await api.post('/teams/join', {
         inviteCode
       });
       setTeam(response.data.team);
