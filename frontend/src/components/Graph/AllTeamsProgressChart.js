@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { format } from 'date-fns';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { format, isValid } from 'date-fns';
 
 const TEAM_COLORS = [
   '#2563EB',
@@ -28,17 +28,19 @@ function ProgressTooltip({ active, payload, label }) {
     .sort((a, b) => (b.value || 0) - (a.value || 0))
     .slice(0, 8);
 
+  const dateLabel = isValid(new Date(label)) ? format(new Date(label), 'MMM dd, HH:mm') : 'Unknown Time';
+
   return (
-    <div className="rounded-xl border border-slate-200 bg-white/95 shadow-xl p-3 min-w-52">
-      <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">{format(new Date(label), 'MMM dd, yyyy HH:mm')}</p>
+    <div className="rounded-xl border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3 min-w-52">
+      <p className="text-xs uppercase tracking-wide text-white/40 mb-2 font-mono">{dateLabel}</p>
       <div className="space-y-1.5">
         {sortedPayload.map((entry) => (
           <div key={entry.dataKey} className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-sm text-slate-700 truncate">{entry.name}</span>
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+              <span className="text-sm text-white/80 font-black uppercase tracking-tight truncate">{entry.name}</span>
             </div>
-            <span className="text-sm font-semibold text-slate-900">{numberFormatter.format(entry.value || 0)}</span>
+            <span className="text-sm font-black text-cyber-green">{numberFormatter.format(entry.value || 0)}</span>
           </div>
         ))}
       </div>
@@ -47,28 +49,61 @@ function ProgressTooltip({ active, payload, label }) {
 }
 
 const buildTimelineData = (seriesList) => {
+  if (!seriesList || seriesList.length === 0) return [];
+  
   const timestampSet = new Set();
 
   seriesList.forEach((series) => {
-    series.points.forEach((point) => {
-      timestampSet.add(new Date(point.timestamp).getTime());
-    });
+    if (series.points && Array.isArray(series.points)) {
+      series.points.forEach((point) => {
+        const d = new Date(point.timestamp);
+        if (isValid(d)) {
+          timestampSet.add(d.getTime());
+        }
+      });
+    }
   });
+
+  if (timestampSet.size === 0) return [];
 
   const sortedTimestamps = Array.from(timestampSet).sort((a, b) => a - b);
   const timelineRows = sortedTimestamps.map((ts) => ({ timestamp: ts }));
 
   seriesList.forEach((series) => {
     const key = toSeriesKey(series.teamId);
-    let currentScore = 0;
-    const scoreByTimestamp = new Map(
-      series.points.map((point) => [new Date(point.timestamp).getTime(), point.score])
-    );
+    if (!series.points || !Array.isArray(series.points) || series.points.length === 0) {
+      timelineRows.forEach((row) => { row[key] = null; });
+      return;
+    }
+
+    const pointsByTimestamp = series.points
+      .map((point) => {
+        const d = new Date(point.timestamp);
+        return [isValid(d) ? d.getTime() : null, point.score];
+      })
+      .filter(p => p[0] !== null)
+      .sort((a, b) => a[0] - b[0]);
+
+    if (!pointsByTimestamp.length) {
+      timelineRows.forEach((row) => { row[key] = null; });
+      return;
+    }
+
+    const firstTimestamp = pointsByTimestamp[0][0];
+    const lastTimestamp = pointsByTimestamp[pointsByTimestamp.length - 1][0];
+    let currentScore = 0; // Initialize with 0
+    const scoreByTimestamp = new Map(pointsByTimestamp);
 
     timelineRows.forEach((row) => {
+      if (row.timestamp < firstTimestamp) {
+        row[key] = 0; // Show 0 before first score
+        return;
+      }
+
       if (scoreByTimestamp.has(row.timestamp)) {
         currentScore = scoreByTimestamp.get(row.timestamp);
       }
+
       row[key] = currentScore;
     });
   });
@@ -99,54 +134,62 @@ function AllTeamsProgressChart({ series = [] }) {
   );
 
   if (!graphData.length) {
-    return <p className="text-gray-500">No submissions yet.</p>;
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-white/20">
+         <Activity className="h-12 w-12 mb-3 stroke-1" />
+         <p className="text-xs uppercase font-black tracking-[0.2em]">No performance data detected</p>
+      </div>
+    );
   }
 
   return (
     <>
       <ResponsiveContainer width="100%" height={360}>
-        <LineChart data={graphData} margin={{ top: 16, right: 24, left: 8, bottom: 18 }}>
-          <CartesianGrid strokeDasharray="4 4" stroke="#E2E8F0" />
+        <LineChart data={graphData} margin={{ top: 16, right: 10, left: 0, bottom: 22 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" strokeOpacity={0.05} vertical={false} />
           <XAxis
             dataKey="timestamp"
             type="number"
             domain={['dataMin', 'dataMax']}
-            tickFormatter={(value) => format(new Date(value), 'MMM dd HH:mm')}
-            tick={{ fontSize: 12, fill: '#475569' }}
-            minTickGap={32}
+            padding={{ left: 0, right: 0 }}
+            allowDataOverflow
+            tickFormatter={(value) => isValid(new Date(value)) ? format(new Date(value), 'HH:mm') : ''}
+            tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }}
+            tickLine={false}
+            axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+            minTickGap={40}
           />
           <YAxis
-            tick={{ fontSize: 12, fill: '#475569' }}
+            tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }}
             tickFormatter={(value) => numberFormatter.format(value)}
-            width={70}
+            tickLine={false}
+            axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+            width={60}
           />
           <Tooltip content={<ProgressTooltip />} />
+          <Legend
+            verticalAlign="bottom"
+            align="left"
+            iconType="circle"
+            wrapperStyle={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', paddingTop: '20px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}
+          />
           {normalizedSeries.map((team) => (
             <Line
               key={team.teamId}
-              type="stepAfter"
+              type="monotone"
               dataKey={team.key}
               stroke={team.color}
-              strokeWidth={highlightedTeamIds.has(team.teamId) ? 3 : 2}
-              strokeOpacity={highlightedTeamIds.has(team.teamId) ? 1 : 0.38}
+              strokeWidth={highlightedTeamIds.has(team.teamId) ? 3 : 1.5}
+              strokeOpacity={highlightedTeamIds.has(team.teamId) ? 1 : 0.3}
               dot={false}
-              activeDot={{ r: 6 }}
-              name={team.teamName}
-              connectNulls
+              activeDot={{ r: 4, fill: team.color, stroke: '#fff', strokeWidth: 2 }}
+              name={team.teamName || team.name}
+              connectNulls={true}
+              animationDuration={1500}
             />
           ))}
         </LineChart>
       </ResponsiveContainer>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {topTeams.map((team) => (
-          <div key={team.teamId} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: team.color }} />
-            <span className="text-xs font-medium text-slate-700">{team.teamName}</span>
-            <span className="text-xs text-slate-500">{numberFormatter.format(team.totalScore || 0)}</span>
-          </div>
-        ))}
-      </div>
     </>
   );
 }

@@ -37,17 +37,24 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
       return res.status(400).json({ error: 'Challenge already solved by your team' });
     }
 
-    if (flag !== challenge.flag) {
-      return res.status(400).json({ error: 'Incorrect flag' });
-    }
+    const isCorrect = flag === challenge.flag;
 
     const submission = new Submission({
       teamId: team._id,
       submittedBy: user._id,
       challengeId: challenge._id,
-      points: challenge.points
+      points: isCorrect ? challenge.points : 0,
+      isCorrect
     });
     await submission.save();
+
+    if (!isCorrect) {
+      return res.status(400).json({
+        success: false,
+        message: 'Incorrect flag',
+        error: 'Incorrect flag'
+      });
+    }
 
     team.solvedChallenges.push({
       challengeId: challenge._id,

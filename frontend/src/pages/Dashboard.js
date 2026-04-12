@@ -92,7 +92,9 @@ function Dashboard() {
     const stats = team?.memberSubmissionStats?.find((item) => normalizeId(item.userId) === memberId);
     return {
       points: stats?.points || 0,
-      submissions: stats?.submissions || 0
+      submissions: stats?.submissions || 0,
+      totalSubmissions: stats?.totalSubmissions || 0,
+      incorrectSubmissions: stats?.incorrectSubmissions || 0
     };
   };
 
