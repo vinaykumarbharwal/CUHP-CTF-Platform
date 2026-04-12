@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "cuhp-ctf-platform",
   "version": "1.0.0",
   "description": "Full-stack CTF platform for cybersecurity competitions",
@@ -23,7 +23,12 @@
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
-  "keywords": ["ctf", "cybersecurity", "competition", "capture-the-flag"],
+  "keywords": [
+    "ctf",
+    "cybersecurity",
+    "competition",
+    "capture-the-flag"
+  ],
   "author": "CUHP CTF Team",
   "license": "MIT"
 }
