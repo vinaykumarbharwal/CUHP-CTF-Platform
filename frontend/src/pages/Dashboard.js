@@ -113,6 +113,12 @@ function Dashboard() {
 
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold mb-4">Team Members</h2>
+              {(team.unattributedSubmissionStats?.points || 0) > 0 && (
+                <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  Legacy unattributed points: {team.unattributedSubmissionStats.points}
+                  {' '}({team.unattributedSubmissionStats.submissions} solves before per-user tracking)
+                </div>
+              )}
               <div className="space-y-2">
                 {team.members?.map((member) => (
                   <div key={getMemberData(member).key} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">

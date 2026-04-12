@@ -27,6 +27,26 @@ async function attachMemberSubmissionStats(teamDoc) {
     }
   ]);
 
+  const unattributed = await Submission.aggregate([
+    {
+      $match: {
+        teamId: team._id,
+        $or: [
+          { submittedBy: null },
+          { submittedBy: { $exists: false } }
+        ],
+        isCorrect: true
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        points: { $sum: '$points' },
+        submissions: { $sum: 1 }
+      }
+    }
+  ]);
+
   const statsMap = stats.reduce((acc, item) => {
     acc[String(item._id)] = {
       points: item.points,
@@ -45,6 +65,11 @@ async function attachMemberSubmissionStats(teamDoc) {
       submissions: memberStats.submissions
     };
   });
+
+  team.unattributedSubmissionStats = {
+    points: unattributed[0]?.points || 0,
+    submissions: unattributed[0]?.submissions || 0
+  };
 
   return team;
 }
