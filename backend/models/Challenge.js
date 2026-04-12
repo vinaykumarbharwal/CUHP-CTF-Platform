@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 const challengeSchema = new mongoose.Schema({
   title: {
@@ -11,7 +11,7 @@ const challengeSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Web', 'Crypto', 'Binary', 'OSINT', 'Misc'],
+    enum: ['Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'],
     required: true
   },
   difficulty: {

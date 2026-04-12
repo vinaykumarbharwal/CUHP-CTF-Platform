@@ -56,8 +56,10 @@ function Challenges() {
 
   const isSelectedChallengeSolved = selectedChallenge ? isSolved(selectedChallenge._id) : false;
 
-  const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc'];
-  const filteredChallenges = category === 'All' ? challenges : challenges.filter((c) => c.category === category);
+  const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'];
+  const filteredChallenges = category === 'All' 
+    ? challenges 
+    : challenges.filter((c) => c.category?.toLowerCase() === category.toLowerCase());
 
   return (
     <Layout>

@@ -48,6 +48,24 @@ const challenges = [
     difficulty: 'Medium',
     points: 200,
     flag: 'CUHP{jwt_tampering_success}'
+  },
+  {
+    title: 'Hidden in Pixels',
+    description: 'An analyst found a strange image on a suspect\'s laptop. Can you uncover the secret hidden within its pixels?',
+    category: 'Forensic',
+    difficulty: 'Easy',
+    points: 150,
+    flag: 'CUHP{forensic_pixel_mystery}',
+    hint: 'Digital images often contain more than just visual data. Check for hidden strings or hidden data blocks.'
+  },
+  {
+    title: 'Forensic Sample: Network Trace',
+    description: 'This is a sample forensics challenge. Often you will need to analyze network traffic files (.pcap). For this sample, just submit the flag: CUHP{pcap_analysis_entry}',
+    category: 'Forensic',
+    difficulty: 'Easy',
+    points: 10,
+    flag: 'CUHP{pcap_analysis_entry}',
+    hint: 'Just copy the flag from the description for this sample challenge.'
   }
 ];
 
