@@ -13,11 +13,14 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const cleanUsername = username.trim();
+    const cleanEmail = email.trim().toLowerCase();
+
     if (password !== confirmPassword) {
       alert('Passwords do not match');
       return;
     }
-    const success = await register(username, email, password);
+    const success = await register(cleanUsername, cleanEmail, password);
     if (success) {
       navigate('/');
     }

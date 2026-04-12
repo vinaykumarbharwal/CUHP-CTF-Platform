@@ -27,10 +27,16 @@ CUHP-CTF-Platform
 
 ### Backend ([backend/.env](backend/.env))
 ```env
-MONGODB_URI=mongodb://localhost:27017/cuhp_ctf
+MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/cuhp_ctf?retryWrites=true&w=majority
 JWT_SECRET=your_super_secret_jwt_key_change_this
 PORT=5000
 ```
+
+MongoDB Atlas quick setup:
+1. Create a cluster in MongoDB Atlas.
+2. Create a database user.
+3. Add your IP address (or 0.0.0.0/0 for testing) in Network Access.
+4. Copy the SRV connection string and replace `MONGODB_URI`.
 
 ### Frontend ([frontend/.env](frontend/.env))
 ```env
@@ -54,6 +60,11 @@ npm run install:all
 ### Option A: Run both from root
 ```bash
 npm run dev
+```
+
+Windows fallback if `npm` is not recognized:
+```powershell
+& "C:\Program Files\nodejs\npm.cmd" run dev
 ```
 
 ### Option B: Run separately
@@ -102,12 +113,21 @@ CUHP-CTF-Platform/
 ```
 
 ## Troubleshooting
-- MongoDB connection refused:
-	- Ensure MongoDB service is running on port 27017, or update `MONGODB_URI`.
+- MongoDB Atlas connection failed:
+	- Verify username/password in `MONGODB_URI`.
+	- Ensure the cluster allows your IP in Atlas Network Access.
+	- Confirm the database user has readWrite permissions.
+	- If `querySrv ECONNREFUSED` appears, try a non-SRV `mongodb://...` URI with explicit shard hosts.
 - Frontend cannot reach backend:
 	- Ensure backend is running and `REACT_APP_API_URL` is correct.
+- Registration failed:
+	- Use a unique username and email.
+	- Password must be at least 6 characters.
+	- Check toast message for exact backend error.
 - Invalid/expired token:
 	- Clear localStorage in browser and login again.
+- Create Team runtime error (`Cannot read properties of undefined (reading '0')`):
+	- Pull latest frontend changes and hard refresh browser (`Ctrl+F5`).
 
 ## License
 MIT

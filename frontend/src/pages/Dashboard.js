@@ -31,7 +31,9 @@ function Dashboard() {
         name: teamName
       });
       setTeam(response.data.team);
+      await fetchTeam();
       setShowCreateModal(false);
+      setTeamName('');
       toast.success('Team created successfully!');
       toast.success(`Invite code: ${response.data.inviteCode}`, { duration: 10000 });
     } catch (error) {
@@ -45,11 +47,25 @@ function Dashboard() {
         inviteCode
       });
       setTeam(response.data.team);
+      await fetchTeam();
       setShowJoinModal(false);
+      setInviteCode('');
       toast.success('Successfully joined team!');
     } catch (error) {
       toast.error(error.response?.data?.error || 'Failed to join team');
     }
+  };
+
+  const getMemberData = (member) => {
+    if (!member || typeof member !== 'object') {
+      return { key: String(member || 'unknown'), username: 'Member', email: '' };
+    }
+
+    const username = member.username || 'Member';
+    const email = member.email || '';
+    const key = member._id || username;
+
+    return { key, username, email };
   };
 
   return (
@@ -86,13 +102,13 @@ function Dashboard() {
               <h2 className="text-xl font-semibold mb-4">Team Members</h2>
               <div className="space-y-2">
                 {team.members?.map((member) => (
-                  <div key={member._id} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
+                  <div key={getMemberData(member).key} className="flex items-center space-x-3 p-2 bg-gray-50 rounded">
                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white">
-                      {member.username[0].toUpperCase()}
+                      {getMemberData(member).username.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-medium">{member.username}</p>
-                      <p className="text-sm text-gray-500">{member.email}</p>
+                      <p className="font-medium">{getMemberData(member).username}</p>
+                      <p className="text-sm text-gray-500">{getMemberData(member).email}</p>
                     </div>
                   </div>
                 ))}
