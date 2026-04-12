@@ -28,15 +28,28 @@ async function attachMemberSubmissionStats(teamDoc) {
     {
       $match: {
         teamId: team._id,
-        submittedBy: { $ne: null },
-        isCorrect: true
+        submittedBy: { $ne: null }
       }
     },
     {
       $group: {
         _id: '$submittedBy',
-        points: { $sum: '$points' },
-        submissions: { $sum: 1 }
+        points: {
+          $sum: {
+            $cond: [{ $eq: ['$isCorrect', true] }, '$points', 0]
+          }
+        },
+        submissions: {
+          $sum: {
+            $cond: [{ $eq: ['$isCorrect', true] }, 1, 0]
+          }
+        },
+        totalSubmissions: { $sum: 1 },
+        incorrectSubmissions: {
+          $sum: {
+            $cond: [{ $eq: ['$isCorrect', false] }, 1, 0]
+          }
+        }
       }
     }
   ]);
@@ -61,17 +74,48 @@ async function attachMemberSubmissionStats(teamDoc) {
     }
   ]);
 
+  const teamTotals = await Submission.aggregate([
+    {
+      $match: {
+        teamId: team._id
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalAttempts: { $sum: 1 },
+        successfulSubmissions: {
+          $sum: {
+            $cond: [{ $eq: ['$isCorrect', true] }, 1, 0]
+          }
+        },
+        failedSubmissions: {
+          $sum: {
+            $cond: [{ $eq: ['$isCorrect', false] }, 1, 0]
+          }
+        }
+      }
+    }
+  ]);
+
   const statsMap = stats.reduce((acc, item) => {
     acc[String(item._id)] = {
       points: item.points,
-      submissions: item.submissions
+      submissions: item.submissions,
+      totalSubmissions: item.totalSubmissions,
+      incorrectSubmissions: item.incorrectSubmissions
     };
     return acc;
   }, {});
 
   team.memberSubmissionStats = (team.members || []).map((member) => {
     const memberId = String(member._id || member);
-    const memberStats = statsMap[memberId] || { points: 0, submissions: 0 };
+    const memberStats = statsMap[memberId] || {
+      points: 0,
+      submissions: 0,
+      totalSubmissions: 0,
+      incorrectSubmissions: 0
+    };
     const totalScore = team.totalScore || 0;
     const contributionPercent = totalScore > 0
       ? Number(((memberStats.points / totalScore) * 100).toFixed(2))
@@ -82,6 +126,8 @@ async function attachMemberSubmissionStats(teamDoc) {
       username: member.username || 'Member',
       points: memberStats.points,
       submissions: memberStats.submissions,
+      totalSubmissions: memberStats.totalSubmissions,
+      incorrectSubmissions: memberStats.incorrectSubmissions,
       contributionPercent
     };
   });
@@ -89,6 +135,20 @@ async function attachMemberSubmissionStats(teamDoc) {
   team.unattributedSubmissionStats = {
     points: unattributed[0]?.points || 0,
     submissions: unattributed[0]?.submissions || 0
+  };
+
+  const totalAttempts = teamTotals[0]?.totalAttempts || 0;
+  const successfulSubmissions = teamTotals[0]?.successfulSubmissions || 0;
+  const failedSubmissions = teamTotals[0]?.failedSubmissions || 0;
+  const successRatePercent = totalAttempts > 0
+    ? Number(((successfulSubmissions / totalAttempts) * 100).toFixed(2))
+    : 0;
+
+  team.teamSubmissionStats = {
+    totalAttempts,
+    successfulSubmissions,
+    failedSubmissions,
+    successRatePercent
   };
 
   return team;

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format } from 'date-fns';
 
 const TEAM_COLORS = [
@@ -29,16 +29,16 @@ function ProgressTooltip({ active, payload, label }) {
     .slice(0, 8);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white/95 shadow-xl p-3 min-w-52">
-      <p className="text-xs uppercase tracking-wide text-slate-500 mb-2">{format(new Date(label), 'MMM dd, yyyy HH:mm')}</p>
+    <div className="rounded-xl border border-slate-600 bg-slate-900/95 shadow-xl p-3 min-w-52">
+      <p className="text-xs uppercase tracking-wide text-slate-300 mb-2">{format(new Date(label), 'MMM dd, yyyy HH:mm')}</p>
       <div className="space-y-1.5">
         {sortedPayload.map((entry) => (
           <div key={entry.dataKey} className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-sm text-slate-700 truncate">{entry.name}</span>
+              <span className="text-sm text-slate-100 truncate">{entry.name}</span>
             </div>
-            <span className="text-sm font-semibold text-slate-900">{numberFormatter.format(entry.value || 0)}</span>
+            <span className="text-sm font-semibold text-slate-100">{numberFormatter.format(entry.value || 0)}</span>
           </div>
         ))}
       </div>
@@ -60,15 +60,32 @@ const buildTimelineData = (seriesList) => {
 
   seriesList.forEach((series) => {
     const key = toSeriesKey(series.teamId);
-    let currentScore = 0;
-    const scoreByTimestamp = new Map(
-      series.points.map((point) => [new Date(point.timestamp).getTime(), point.score])
-    );
+    const pointsByTimestamp = series.points
+      .map((point) => [new Date(point.timestamp).getTime(), point.score])
+      .sort((a, b) => a[0] - b[0]);
+
+    if (!pointsByTimestamp.length) {
+      timelineRows.forEach((row) => {
+        row[key] = null;
+      });
+      return;
+    }
+
+    const firstTimestamp = pointsByTimestamp[0][0];
+    const lastTimestamp = pointsByTimestamp[pointsByTimestamp.length - 1][0];
+    let currentScore = null;
+    const scoreByTimestamp = new Map(pointsByTimestamp);
 
     timelineRows.forEach((row) => {
+      if (row.timestamp < firstTimestamp || row.timestamp > lastTimestamp) {
+        row[key] = null;
+        return;
+      }
+
       if (scoreByTimestamp.has(row.timestamp)) {
         currentScore = scoreByTimestamp.get(row.timestamp);
       }
+
       row[key] = currentScore;
     });
   });
@@ -99,54 +116,56 @@ function AllTeamsProgressChart({ series = [] }) {
   );
 
   if (!graphData.length) {
-    return <p className="text-gray-500">No submissions yet.</p>;
+    return <p className="text-slate-300">No submissions yet.</p>;
   }
 
   return (
     <>
       <ResponsiveContainer width="100%" height={360}>
-        <LineChart data={graphData} margin={{ top: 16, right: 24, left: 8, bottom: 18 }}>
-          <CartesianGrid strokeDasharray="4 4" stroke="#E2E8F0" />
+        <LineChart data={graphData} margin={{ top: 16, right: 10, left: 0, bottom: 22 }}>
+          <CartesianGrid strokeDasharray="4 4" stroke="#334155" />
           <XAxis
             dataKey="timestamp"
             type="number"
             domain={['dataMin', 'dataMax']}
-            tickFormatter={(value) => format(new Date(value), 'MMM dd HH:mm')}
-            tick={{ fontSize: 12, fill: '#475569' }}
+            padding={{ left: 0, right: 0 }}
+            allowDataOverflow
+            tickFormatter={(value) => format(new Date(value), 'HH:mm')}
+            tick={{ fontSize: 11, fill: '#CBD5E1' }}
+            tickLine={false}
+            axisLine={{ stroke: '#64748B' }}
             minTickGap={32}
           />
           <YAxis
-            tick={{ fontSize: 12, fill: '#475569' }}
+            tick={{ fontSize: 11, fill: '#CBD5E1' }}
             tickFormatter={(value) => numberFormatter.format(value)}
+            tickLine={false}
+            axisLine={{ stroke: '#64748B' }}
             width={70}
           />
           <Tooltip content={<ProgressTooltip />} />
+          <Legend
+            verticalAlign="bottom"
+            align="left"
+            iconType="circle"
+            wrapperStyle={{ fontSize: '11px', color: '#E2E8F0', paddingTop: '10px' }}
+          />
           {normalizedSeries.map((team) => (
             <Line
               key={team.teamId}
-              type="stepAfter"
+              type="linear"
               dataKey={team.key}
               stroke={team.color}
               strokeWidth={highlightedTeamIds.has(team.teamId) ? 3 : 2}
-              strokeOpacity={highlightedTeamIds.has(team.teamId) ? 1 : 0.38}
-              dot={false}
-              activeDot={{ r: 6 }}
+              strokeOpacity={highlightedTeamIds.has(team.teamId) ? 1 : 0.45}
+              dot={{ r: 2, strokeWidth: 0 }}
+              activeDot={{ r: 4 }}
               name={team.teamName}
-              connectNulls
+              connectNulls={false}
             />
           ))}
         </LineChart>
       </ResponsiveContainer>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {topTeams.map((team) => (
-          <div key={team.teamId} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: team.color }} />
-            <span className="text-xs font-medium text-slate-700">{team.teamName}</span>
-            <span className="text-xs text-slate-500">{numberFormatter.format(team.totalScore || 0)}</span>
-          </div>
-        ))}
-      </div>
     </>
   );
 }

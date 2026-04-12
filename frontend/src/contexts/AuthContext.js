@@ -21,25 +21,18 @@ const getApiErrorMessage = (error, fallbackMessage) => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common.Authorization = `Bearer ${token}`;
-      const userData = JSON.parse(localStorage.getItem('user') || 'null');
-      if (userData?.id) {
-        setUser(userData);
-      } else {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        delete axios.defaults.headers.common.Authorization;
-        setToken(null);
-        setUser(null);
-      }
-    }
+    // Force a fresh auth session on every app start.
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    delete axios.defaults.headers.common.Authorization;
+    setToken(null);
+    setUser(null);
     setLoading(false);
-  }, [token]);
+  }, []);
 
   const login = async (email, password) => {
     try {

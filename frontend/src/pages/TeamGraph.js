@@ -1,5 +1,13 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import {
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+} from 'recharts';
 import Layout from '../components/Layout';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -49,6 +57,27 @@ function TeamGraph() {
     );
   }
 
+  const summaryData = [
+    {
+      key: 'attempts',
+      label: 'Total Attempts',
+      value: team.teamSubmissionStats?.totalAttempts || 0,
+      color: '#475569'
+    },
+    {
+      key: 'success',
+      label: 'Successful',
+      value: team.teamSubmissionStats?.successfulSubmissions || 0,
+      color: '#059669'
+    },
+    {
+      key: 'failed',
+      label: 'Failed',
+      value: team.teamSubmissionStats?.failedSubmissions || 0,
+      color: '#e11d48'
+    }
+  ];
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -69,6 +98,41 @@ function TeamGraph() {
         </div>
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <h2 className="text-xl font-semibold text-slate-900 mb-4">Team Submission Summary</h2>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Tooltip
+                  formatter={(value) => numberFormatter.format(value)}
+                  contentStyle={{ borderRadius: '0.75rem', borderColor: '#cbd5e1' }}
+                />
+                <Legend verticalAlign="bottom" height={36} />
+                <Pie
+                  data={summaryData}
+                  dataKey="value"
+                  nameKey="label"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={62}
+                  outerRadius={110}
+                  paddingAngle={2}
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                >
+                  {summaryData.map((entry) => (
+                    <Cell key={entry.key} fill={entry.color} />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sky-800">
+            <p className="text-sm font-medium">Success Rate</p>
+            <p className="text-2xl font-bold">{numberFormatter.format(team.teamSubmissionStats?.successRatePercent || 0)}%</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
           <h2 className="text-xl font-semibold text-slate-900 mb-4">Member Contribution</h2>
           {(team.unattributedSubmissionStats?.points || 0) > 0 && (
             <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
@@ -85,6 +149,10 @@ function TeamGraph() {
                   <p className="text-sm text-slate-500">
                     {member.submissions} successful submissions
                     {' '}({numberFormatter.format(member.contributionPercent || 0)}% contribution)
+                  </p>
+                  <p className="text-sm text-slate-500">
+                    {member.totalSubmissions || 0} total attempts
+                    {' '}| {member.incorrectSubmissions || 0} incorrect
                   </p>
                 </div>
                 <p className="text-lg font-bold text-blue-700">{numberFormatter.format(member.points)} pts</p>

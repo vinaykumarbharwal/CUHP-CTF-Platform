@@ -91,7 +91,9 @@ function Dashboard() {
     const stats = team?.memberSubmissionStats?.find((item) => normalizeId(item.userId) === memberId);
     return {
       points: stats?.points || 0,
-      submissions: stats?.submissions || 0
+      submissions: stats?.submissions || 0,
+      totalSubmissions: stats?.totalSubmissions || 0,
+      incorrectSubmissions: stats?.incorrectSubmissions || 0
     };
   };
 
@@ -145,6 +147,10 @@ function Dashboard() {
                       <p className="text-sm text-blue-700">
                         Submission points: <span className="font-semibold">{getMemberStats(member).points}</span>
                         {' '}({getMemberStats(member).submissions} solves)
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Attempts: <span className="font-semibold">{getMemberStats(member).totalSubmissions}</span>
+                        {' '}| Incorrect: <span className="font-semibold">{getMemberStats(member).incorrectSubmissions}</span>
                       </p>
                     </div>
                   </div>
