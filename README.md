@@ -57,6 +57,10 @@ npm run install:all
 
 ## Run (Development)
 
+Real-time reload is enabled by default in development:
+- Frontend uses React Fast Refresh and polling-based file watching for reliable reload on Windows.
+- Backend uses nodemon with legacy watch mode, so API changes auto-restart the server.
+
 ### Option A: Run both from root
 ```bash
 npm run dev

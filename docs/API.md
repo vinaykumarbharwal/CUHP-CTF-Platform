@@ -307,6 +307,34 @@ Auth required: yes
 
 Success response (`200`): same shape as `/graph/my-team`.
 
+#### GET /graph/all-teams
+Get cumulative score progression for all teams.
+
+Auth required: yes
+
+Success response (`200`):
+```json
+[
+	{
+		"teamId": "<team_id>",
+		"teamName": "Team Alpha",
+		"totalScore": 500,
+		"points": [
+			{
+				"timestamp": "2026-04-12T12:00:00.000Z",
+				"score": 0,
+				"points": 0
+			},
+			{
+				"timestamp": "2026-04-12T12:30:00.000Z",
+				"score": 100,
+				"points": 100
+			}
+		]
+	}
+]
+```
+
 ## Error Summary
 - `200`: Success
 - `201`: Created
