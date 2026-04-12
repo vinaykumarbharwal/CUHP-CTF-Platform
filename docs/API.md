@@ -186,7 +186,11 @@ Additional field:
 			"points": 300,
 			"submissions": 3
 		}
-	]
+	],
+	"unattributedSubmissionStats": {
+		"points": 100,
+		"submissions": 1
+	}
 }
 ```
 
