@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Trophy } from 'lucide-react';
@@ -27,26 +27,93 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
-        <div>
-          <div className="flex justify-center"><Trophy className="h-12 w-12 text-blue-600" /></div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">Create Account</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">Join the competition</p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-3">
-            <div><input type="text" required value={username} onChange={(e) => setUsername(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Username" /></div>
-            <div><input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Email address" /></div>
-            <div><input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Password" /></div>
-            <div><input type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" placeholder="Confirm Password" /></div>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12">
+      <div className="cyber-glass max-w-md w-full p-10 rounded-2xl shadow-2xl border border-cyber-green/20 relative overflow-hidden">
+        {/* Decorative background element */}
+        <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyber-green/10 blur-3xl rounded-full"></div>
+        <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-cyber-blue/10 blur-3xl rounded-full"></div>
+
+        <div className="relative">
+          <div className="flex flex-col items-center mb-10">
+            <div className="relative mb-4">
+              <Trophy className="h-16 w-16 text-cyber-green" />
+              <div className="absolute inset-0 bg-cyber-green/20 blur-xl rounded-full animate-pulse"></div>
+            </div>
+            <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic font-bytebounce text-center">
+              Create <span className="text-cyber-green">Account</span>
+            </h2>
+            <p className="mt-2 text-sm text-white/50 font-mono text-center uppercase tracking-widest">Join the competition</p>
           </div>
-          <div>
-            <button type="submit" className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">Register</button>
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div>
+              <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
+                Username
+              </label>
+              <input
+                type="text"
+                required
+                className="cyber-input w-full font-mono text-sm"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
+                Email address
+              </label>
+              <input
+                type="email"
+                required
+                className="cyber-input w-full font-mono text-sm"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                className="cyber-input w-full font-mono text-sm"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                required
+                className="cyber-input w-full font-mono text-sm"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+
+            <div className="pt-4">
+              <button type="submit" className="cyber-button w-full py-3 text-sm">
+                Register
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-8 text-center border-t border-white/10 pt-6">
+            <p className="text-sm text-white/40">
+              Already have an account?{' '}
+              <Link to="/login" className="text-cyber-green hover:text-cyber-blue font-bold uppercase tracking-tighter transition-colors">
+                Sign in
+              </Link>
+            </p>
           </div>
-        </form>
-        <div className="text-center">
-          <Link to="/login" className="text-sm text-blue-600 hover:text-blue-500">Already have an account? Sign in</Link>
         </div>
       </div>
     </div>

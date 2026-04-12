@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
@@ -34,7 +34,7 @@ app.use('/api/submit', submissionRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/graph', graphRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 async function startServer() {
   try {

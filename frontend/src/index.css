@@ -1,3 +1,60 @@
-﻿@tailwind base;
+@import url('https://fonts.cdnfonts.com/css/bytebounce');
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply bg-cyber-dark text-white;
+    background-image: linear-gradient(rgba(10, 20, 20, 0.85), rgba(10, 20, 20, 0.85)), url('./assets/images/bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+}
+
+@layer components {
+  .cyber-glass {
+    @apply bg-cyber-dark/60 backdrop-blur-md border border-white/10;
+  }
+
+  .cyber-card {
+    @apply bg-cyber-dark/40 backdrop-blur-lg border border-cyber-green/30 rounded-xl transition-all duration-300 hover:border-cyber-green/60 hover:shadow-[0_0_20px_rgba(0,255,65,0.2)];
+  }
+
+  .cyber-button {
+    @apply relative overflow-hidden px-6 py-2 rounded font-bold uppercase tracking-wider transition-all duration-300 border-2 border-cyber-green text-cyber-green hover:bg-cyber-green hover:text-black hover:shadow-[0_0_15px_rgba(0,255,65,0.5)];
+  }
+
+  .cyber-input {
+    @apply bg-black/40 border border-cyber-green/30 rounded px-4 py-2 text-white focus:outline-none focus:border-cyber-green focus:shadow-[0_0_10px_rgba(0,255,65,0.2)] transition-all;
+  }
+
+  .font-bytebounce {
+    font-family: 'ByteBounce', sans-serif;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-cyber-dark;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-cyber-green/50 rounded-full hover:bg-cyber-green;
+}

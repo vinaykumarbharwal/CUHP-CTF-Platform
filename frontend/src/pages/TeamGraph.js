@@ -1,8 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import Layout from '../components/Layout';
 import toast from 'react-hot-toast';
 import api from '../services/api';
+import { Loader2, Activity, Users, ShieldCheck } from 'lucide-react';
 
 const numberFormatter = new Intl.NumberFormat('en-US');
 
@@ -29,8 +30,9 @@ function TeamGraph() {
   if (loading) {
     return (
       <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="flex flex-col justify-center items-center h-96">
+          <Loader2 className="h-12 w-12 text-cyber-blue animate-spin mb-4" />
+          <p className="text-cyber-blue font-mono text-xs uppercase tracking-[0.3em] animate-pulse">Syncing Insights...</p>
         </div>
       </Layout>
     );
@@ -39,10 +41,10 @@ function TeamGraph() {
   if (!team) {
     return (
       <Layout>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-            <h2 className="text-xl font-semibold text-yellow-800 mb-2">No Team Found</h2>
-            <p className="text-yellow-700">Create or join a team to view progress insights.</p>
+        <div className="py-8">
+          <div className="cyber-card p-12 text-center max-w-2xl mx-auto border-dashed border-yellow-400/30">
+            <h2 className="text-2xl font-black text-yellow-400 uppercase tracking-tighter mb-4">No Team Detected</h2>
+            <p className="text-white/60 font-mono text-sm">Join a team to access progress insights and performance analytics.</p>
           </div>
         </div>
       </Layout>
@@ -51,65 +53,80 @@ function TeamGraph() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <div className="rounded-2xl border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-sky-50 p-6 shadow-sm">
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-2">Team Progress Insights</h1>
-          <p className="text-slate-600">Performance summary and member contribution for {team.name}.</p>
+      <div className="py-8 space-y-8">
+        <div className="cyber-card p-6 border-l-4 border-cyber-blue">
+          <div className="flex items-center space-x-3 mb-2">
+             <Activity className="text-cyber-blue h-6 w-6" />
+             <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Team Progress <span className="text-cyber-blue">Insights</span></h1>
+          </div>
+          <p className="text-white/50 font-mono text-xs uppercase tracking-widest">Performance summary and member contribution for {team.name}</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Total Score</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{numberFormatter.format(team.totalScore || 0)}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="cyber-card p-6 group">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 group-hover:text-cyber-green transition-colors">Total Score</p>
+            <p className="mt-2 text-4xl font-black text-cyber-green tracking-tighter">{numberFormatter.format(team.totalScore || 0)} <span className="text-xs uppercase">pts</span></p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs uppercase tracking-wide text-slate-500">Solved Challenges</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{numberFormatter.format(team.solvedChallenges?.length || 0)}</p>
+          <div className="cyber-card p-6 group">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 group-hover:text-cyber-blue transition-colors">Solved Challenges</p>
+            <p className="mt-2 text-4xl font-black text-cyber-blue tracking-tighter">{numberFormatter.format(team.solvedChallenges?.length || 0)} <span className="text-xs uppercase">solved</span></p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Member Contribution</h2>
-          {(team.unattributedSubmissionStats?.points || 0) > 0 && (
-            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-              Legacy unattributed points: {team.unattributedSubmissionStats.points}
-              {' '}({team.unattributedSubmissionStats.submissions} solves before per-user tracking)
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="cyber-glass p-6 rounded-2xl border border-white/5">
+            <div className="flex items-center space-x-2 mb-6">
+               <Users className="text-cyber-blue h-5 w-5" />
+               <h2 className="text-xl font-black text-white uppercase tracking-tight">Member Contribution</h2>
             </div>
-          )}
-
-          <div className="space-y-2">
-            {(team.memberSubmissionStats || []).map((member) => (
-              <div key={member.userId} className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3">
-                <div>
-                  <p className="font-semibold text-slate-900">{member.username}</p>
-                  <p className="text-sm text-slate-500">
-                    {member.submissions} successful submissions
-                    {' '}({numberFormatter.format(member.contributionPercent || 0)}% contribution)
-                  </p>
-                </div>
-                <p className="text-lg font-bold text-blue-700">{numberFormatter.format(member.points)} pts</p>
+            
+            {(team.unattributedSubmissionStats?.points || 0) > 0 && (
+              <div className="mb-4 p-3 rounded bg-yellow-400/5 border border-yellow-400/20 text-[10px] font-mono text-yellow-400/80 uppercase">
+                Legacy unattributed points: {team.unattributedSubmissionStats.points} ({team.unattributedSubmissionStats.submissions} solves before per-user tracking)
               </div>
-            ))}
-          </div>
-        </div>
+            )}
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Solves</h2>
-          {team.solvedChallenges?.length ? (
-            <div className="space-y-2">
-              {[...team.solvedChallenges]
-                .sort((a, b) => new Date(b.solvedAt) - new Date(a.solvedAt))
-                .slice(0, 8)
-                .map((item) => (
-                  <div key={item.challengeId?._id || item.solvedAt} className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3">
-                    <p className="font-medium text-slate-900">{item.challengeId?.title || 'Challenge'}</p>
-                    <p className="text-sm text-slate-500">{item.solvedAt ? format(new Date(item.solvedAt), 'MMM dd, yyyy HH:mm') : 'N/A'}</p>
+            <div className="space-y-3">
+              {(team.memberSubmissionStats || []).map((member) => (
+                <div key={member.userId} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors">
+                  <div>
+                    <p className="font-black text-white uppercase tracking-tight text-sm">{member.username}</p>
+                    <p className="text-[10px] font-mono text-white/40 mt-1 uppercase">
+                      {member.submissions} successful submissions | {numberFormatter.format(member.contributionPercent || 0)}% contribution
+                    </p>
                   </div>
-                ))}
+                  <p className="text-lg font-black text-cyber-green tracking-tighter">{numberFormatter.format(member.points)} pts</p>
+                </div>
+              ))}
             </div>
-          ) : (
-            <p className="text-gray-500">No solved challenges yet.</p>
-          )}
+          </div>
+
+          <div className="cyber-glass p-6 rounded-2xl border border-white/5">
+            <div className="flex items-center space-x-2 mb-6">
+               <ShieldCheck className="text-cyber-green h-5 w-5" />
+               <h2 className="text-xl font-black text-white uppercase tracking-tight">Recent Solves</h2>
+            </div>
+            
+            {team.solvedChallenges?.length ? (
+              <div className="space-y-3">
+                {[...team.solvedChallenges]
+                  .sort((a, b) => new Date(b.solvedAt) - new Date(a.solvedAt))
+                  .slice(0, 6)
+                  .map((item) => (
+                    <div key={item.challengeId?._id || item.solvedAt} className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-lg group hover:border-cyber-green/30 transition-colors">
+                      <p className="font-black text-white/80 uppercase text-xs truncate group-hover:text-white transition-colors">{item.challengeId?.title || 'Unknown Asset'}</p>
+                      <p className="text-[10px] font-mono text-white/30 shrink-0 ml-4 group-hover:text-cyber-green transition-colors italic">
+                        {item.solvedAt ? format(new Date(item.solvedAt), 'yyyy.MM.dd') : 'No Date'}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="h-full flex items-center justify-center p-12 border-2 border-dashed border-white/5 rounded-xl">
+                 <p className="text-white/20 font-black uppercase text-xs italic">No activity logs recorded.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Layout>
