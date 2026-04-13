@@ -37,11 +37,13 @@ const Landing = () => {
 
   const getCategoryDescription = (category) => {
     switch (category.toLowerCase()) {
-      case 'web': return 'Bypass logins, exploit XSS, and SQL injections.';
-      case 'crypto': return 'Break ancient ciphers and modern encryption.';
-      case 'forensic': return 'Analyze traffic and images for hidden secrets.';
-      case 'binary': return 'Exploit memory vulnerabilities and reverse engineering.';
-      default: return 'Unique security challenges and puzzle solving.';
+      case 'web': return 'Test real-world web flaws like SQL injection, XSS, and auth bypass.';
+      case 'crypto': return 'Decode ciphers, break encodings, and recover hidden messages.';
+      case 'forensic': return 'Investigate files, metadata, and traces to uncover evidence.';
+      case 'binary': return 'Reverse binaries, inspect program logic, and find hidden checks.';
+      case 'osint': return 'Track public clues across platforms and connect digital footprints.';
+      case 'misc': return 'Solve creative logic puzzles and hybrid security mini-challenges.';
+      default: return 'Hands-on security tasks designed for practical CTF learning.';
     }
   };
 
@@ -81,18 +83,19 @@ const Landing = () => {
             <Activity className="h-3 w-3 mr-2" /> Live Connection: Established
           </div>
           <h1 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter leading-none mb-6 font-bytebounce">
-            The Cyber <span className="text-cyber-green">Matrix</span> <br />
-            Is Online
+            Defend. Exploit. <span className="text-cyber-green">Learn.</span> <br />
+            In Real Time
           </h1>
           <p className="max-w-2xl mx-auto text-white/60 font-mono text-sm md:text-base mb-12 uppercase tracking-wide leading-relaxed">
-            Master the art of exploitation at CUHP's premier CTF platform. 
-            Real-time challenges, real-world vulnerabilities, and ultimate glory.
+            Train like a security analyst with practical CTF missions across web,
+            crypto, binary, forensics, and osint. Build skills, solve challenges,
+            and climb the live leaderboard with your team.
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
-            <Link to={user ? "/dashboard" : "/register"} className="cyber-button px-10 py-4 text-sm w-full sm:w-auto">
-              {user ? "Enter Dashboard" : "Initialize Access"}
+            <Link to={user ? "/dashboard" : "/login"} className="cyber-button px-10 py-4 text-sm w-full sm:w-72 flex items-center justify-center">
+              {user ? "Enter Dashboard" : "Get Started"} <ChevronRight className="h-4 w-4 ml-2" />
             </Link>
-            <Link to="/leaderboard" className="cyber-button border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black px-10 py-4 text-sm w-full sm:w-auto overflow-hidden group">
+            <Link to="/leaderboard" className="cyber-button border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black px-10 py-4 text-sm w-full sm:w-72 overflow-hidden group">
               <span className="relative z-10 flex items-center justify-center">
                 System Ranking <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </span>
@@ -102,10 +105,10 @@ const Landing = () => {
 
         {/* Stats Grid */}
         <div className={`grid grid-cols-2 lg:grid-cols-4 gap-4 mb-24 transition-opacity duration-1000 ${loading ? 'opacity-0' : 'opacity-100'}`}>
-          <StatBox label="Active Agents" value={loading ? '...' : `${stats.users}+`} color="cyber-green" />
-          <StatBox label="Elite Squads" value={loading ? '...' : stats.teams} color="cyber-blue" />
-          <StatBox label="Active Nodes" value={loading ? '...' : stats.challenges} color="cyber-accent" />
-          <StatBox label="Status" value="24/7" color="cyber-green" />
+          <StatBox label="Registered Players" value={loading ? '...' : `${stats.users}+`} color="cyber-green" />
+          <StatBox label="Active Teams" value={loading ? '...' : stats.teams} color="cyber-blue" />
+          <StatBox label="Challenge Pool" value={loading ? '...' : stats.challenges} color="cyber-accent" />
+          <StatBox label="Platform Uptime" value="24/7" color="cyber-green" />
         </div>
 
         {/* Categories Section */}
@@ -129,9 +132,9 @@ const Landing = () => {
             ) : (
               // Fallback if API fails or categories are still loading the description logic
               <>
-                <CategoryCard icon={<Globe className="text-cyber-blue h-8 w-8" />} title="Web" description="Analyze and exploit web application vulnerabilities." />
-                <CategoryCard icon={<Terminal className="text-cyber-green h-8 w-8" />} title="Forensic" description="Analyze file systems and network traffic." />
-                <CategoryCard icon={<Shield className="text-cyber-accent h-8 w-8" />} title="Crypto" description="Crack codes and modern encryption systems." />
+                <CategoryCard icon={<Globe className="text-cyber-blue h-8 w-8" />} title="Web" description="Find and exploit common vulnerabilities in modern web apps." />
+                <CategoryCard icon={<Terminal className="text-cyber-green h-8 w-8" />} title="Forensic" description="Extract hidden evidence from files, logs, and traffic artifacts." />
+                <CategoryCard icon={<Shield className="text-cyber-accent h-8 w-8" />} title="Crypto" description="Decode encoded text and solve cryptographic puzzle chains." />
               </>
             )}
           </div>
@@ -148,16 +151,16 @@ const Landing = () => {
             </div>
             <p className="text-[10px] font-mono leading-relaxed uppercase">
               Central University of Himachal Pradesh <br />
-              Cyber Security Initiative
+              Capture The Flag Initiative
             </p>
           </div>
           <div className="text-[10px] font-mono uppercase tracking-widest">
-            Encryption: AES-256 <br />
-            System: Nominal
+            Challenges: Live <br />
+            Mode: Team Competition
           </div>
           <div className="text-[10px] font-mono uppercase">
             © {new Date().getFullYear()} CUHP. <br />
-            Built for the future.
+            Built for practical cybersecurity learning.
           </div>
         </div>
       </footer>

@@ -53,7 +53,7 @@ function Register() {
             <p className="mt-2 text-sm text-white/50 font-mono text-center uppercase tracking-widest">Join the competition</p>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
             <div>
               <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
                 Username
@@ -61,6 +61,7 @@ function Register() {
               <input
                 type="text"
                 required
+                autoComplete="off"
                 className="cyber-input w-full font-mono text-sm"
                 placeholder="Username"
                 value={username}
@@ -74,6 +75,7 @@ function Register() {
               <input
                 type="email"
                 required
+                autoComplete="off"
                 className="cyber-input w-full font-mono text-sm"
                 placeholder="Email address"
                 value={email}
@@ -87,6 +89,7 @@ function Register() {
               <input
                 type="password"
                 required
+                autoComplete="new-password"
                 className="cyber-input w-full font-mono text-sm"
                 placeholder="Password"
                 value={password}
@@ -100,6 +103,7 @@ function Register() {
               <input
                 type="password"
                 required
+                autoComplete="new-password"
                 className="cyber-input w-full font-mono text-sm"
                 placeholder="Confirm Password"
                 value={confirmPassword}

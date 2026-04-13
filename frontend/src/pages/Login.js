@@ -7,6 +7,8 @@ import bgImage from '../assets/images/bg.png';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailLocked, setEmailLocked] = useState(true);
+  const [passwordLocked, setPasswordLocked] = useState(true);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -44,14 +46,20 @@ function Login() {
             <p className="mt-2 text-sm text-white/50 font-mono text-center uppercase">Sign in to start competing</p>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
             <div>
               <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-2 ml-1">
                 Email address
               </label>
               <input
                 type="email"
+                name="login_identifier"
                 required
+                readOnly={emailLocked}
+                onFocus={() => setEmailLocked(false)}
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
                 className="cyber-input w-full font-mono text-sm"
                 placeholder="Email address"
                 value={email}
@@ -64,7 +72,11 @@ function Login() {
               </label>
               <input
                 type="password"
+                name="account_passcode"
                 required
+                readOnly={passwordLocked}
+                onFocus={() => setPasswordLocked(false)}
+                autoComplete="off"
                 className="cyber-input w-full font-mono text-sm"
                 placeholder="Password"
                 value={password}
