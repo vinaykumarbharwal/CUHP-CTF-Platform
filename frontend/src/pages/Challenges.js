@@ -10,6 +10,7 @@ function Challenges() {
   const [flag, setFlag] = useState('');
   const [category, setCategory] = useState('All');
   const [solveFilter, setSolveFilter] = useState('Unsolved');
+  const [showSolvedByList, setShowSolvedByList] = useState(false);
   const [team, setTeam] = useState(null);
 
   useEffect(() => {
@@ -43,6 +44,7 @@ function Challenges() {
       });
       toast.success(`Correct! +${response.data.points} points`);
       setSelectedChallenge(null);
+      setShowSolvedByList(false);
       setFlag('');
       fetchChallenges();
       fetchTeam();
@@ -72,8 +74,17 @@ function Challenges() {
 
   const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'];
   
+  // Separate sample challenge from others
+  const sampleChallenge = useMemo(() => {
+    return challenges.find((c) => c.title === 'Sample Challenge (How To Play)');
+  }, [challenges]);
+
+  const nonSampleChallenges = useMemo(() => {
+    return challenges.filter((c) => c.title !== 'Sample Challenge (How To Play)');
+  }, [challenges]);
+  
   const finalChallenges = useMemo(() => {
-    let result = challenges;
+    let result = nonSampleChallenges;
 
     // Filter by Category
     if (category !== 'All') {
@@ -92,7 +103,7 @@ function Challenges() {
     result = [...result].sort((a, b) => b.points - a.points);
 
     return result;
-  }, [challenges, category, solveFilter, solvedChallengeIds]);
+  }, [nonSampleChallenges, category, solveFilter, solvedChallengeIds]);
 
   return (
     <Layout>
@@ -103,6 +114,44 @@ function Challenges() {
             Challenges
           </h1>
         </div>
+
+        {/* Sample Challenge - Always Shown First */}
+        {sampleChallenge && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+            <div
+              key={sampleChallenge._id}
+              className={`cyber-card p-6 cursor-pointer group flex flex-col justify-between border-2 border-dashed border-cyber-blue/50 bg-cyber-blue/5 shadow-[0_0_24px_rgba(0,240,255,0.2)]`}
+              onClick={() => {
+                setSelectedChallenge(sampleChallenge);
+                setShowSolvedByList(false);
+              }}
+            >
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-cyber-blue/70">📖 Tutorial</span>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border text-cyber-green border-cyber-green/30 bg-cyber-green/5`}>
+                    Easy
+                  </span>
+                </div>
+                <h3 className={`text-xl font-black uppercase tracking-tight mb-2 transition-colors text-white group-hover:text-cyber-blue`}>
+                  {sampleChallenge.title}
+                </h3>
+              </div>
+              
+              <div className="mt-6 flex items-end justify-between">
+                <div>
+                   <p className={`text-2xl font-black leading-none text-cyber-blue`}>{sampleChallenge.points}</p>
+                   <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Points</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-black text-cyber-blue uppercase tracking-widest">
+                    ⭐ START HERE
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Categories */}
         <div className="flex space-x-3 mb-6 overflow-x-auto pb-4">
@@ -148,7 +197,10 @@ function Challenges() {
                   ? 'bg-cyber-green/15 border-cyber-green shadow-[0_0_24px_rgba(0,255,65,0.25)]'
                   : 'border-cyber-blue/20'
               }`}
-              onClick={() => setSelectedChallenge(challenge)}
+              onClick={() => {
+                setSelectedChallenge(challenge);
+                setShowSolvedByList(false);
+              }}
             >
               <div>
                 <div className="flex justify-between items-start mb-4">
@@ -201,7 +253,10 @@ function Challenges() {
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4">
           <div className="cyber-glass max-w-lg w-full p-8 rounded-2xl shadow-[0_0_100px_rgba(0,240,255,0.1)] border-cyber-blue/30 relative">
             <button 
-              onClick={() => setSelectedChallenge(null)}
+              onClick={() => {
+                setSelectedChallenge(null);
+                setShowSolvedByList(false);
+              }}
               className="absolute top-4 right-4 text-white/30 hover:text-white transition-colors"
             >
               <LogOut className="h-6 w-6 rotate-180" />
@@ -223,8 +278,32 @@ function Challenges() {
               )}
 
               <div className="text-[10px] font-black text-white/40 uppercase tracking-widest bg-black/30 p-2 rounded inline-block">
-                Solved by teams: {selectedChallenge.solvedByTeams?.length || 0}
+                <button
+                  type="button"
+                  onClick={() => setShowSolvedByList((prev) => !prev)}
+                  className="hover:text-cyber-green transition-colors"
+                >
+                  Solved By ({selectedChallenge.solvedByTeams?.length || 0})
+                </button>
               </div>
+
+              {showSolvedByList && (
+                <div className="mt-3 max-h-40 overflow-y-auto rounded border border-white/10 bg-black/30 p-3">
+                  {selectedChallenge.solvedByTeams?.length ? (
+                    <ul className="space-y-2">
+                      {selectedChallenge.solvedByTeams.map((teamName) => (
+                        <li key={teamName} className="text-xs font-mono text-white/80 uppercase tracking-wide">
+                          {teamName}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-xs font-mono text-white/40 uppercase tracking-widest">
+                      No teams have solved this challenge yet.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-6">
@@ -246,7 +325,10 @@ function Challenges() {
                     />
                   </div>
                   <div className="flex space-x-4">
-                    <button onClick={() => setSelectedChallenge(null)} className="flex-1 px-4 py-3 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
+                    <button onClick={() => {
+                      setSelectedChallenge(null);
+                      setShowSolvedByList(false);
+                    }} className="flex-1 px-4 py-3 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
                     <button onClick={submitFlag} className="cyber-button flex-[2] py-3 text-sm border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black">Submit</button>
                   </div>
                 </div>

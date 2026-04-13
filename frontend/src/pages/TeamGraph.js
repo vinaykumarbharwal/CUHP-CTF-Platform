@@ -48,14 +48,6 @@ function TeamGraph() {
     }
   };
 
-  const getSummaryData = () => {
-    if (!team?.teamSubmissionStats) return [];
-    return [
-      { name: 'Successful', value: team.teamSubmissionStats.successfulSubmissions || 0, color: CHART_COLORS.successful },
-      { name: 'Failed', value: team.teamSubmissionStats.failedSubmissions || 0, color: CHART_COLORS.failed }
-    ];
-  };
-
   if (loading) {
     return (
       <Layout>
@@ -80,12 +72,42 @@ function TeamGraph() {
     );
   }
 
-  const summaryData = getSummaryData();
   const successRate = team.teamSubmissionStats?.successRatePercent || 0;
   const recentSolvedChallenges = [...(team.solvedChallenges || [])]
     .filter((item) => item?.challengeId?.title)
     .sort((a, b) => new Date(b.solvedAt) - new Date(a.solvedAt))
     .slice(0, 8);
+
+  const successfulSubmissions = team.teamSubmissionStats?.successfulSubmissions || 0;
+  const failedSubmissions = team.teamSubmissionStats?.failedSubmissions || 0;
+  const solvePercentageData = [
+    { name: 'Solves', value: successfulSubmissions, color: '#67e34e' },
+    { name: 'Fails', value: failedSubmissions, color: '#dc3a30' }
+  ].filter((item) => item.value > 0);
+
+  const categoryColorMap = {
+    Web: '#d946ef',
+    Crypto: '#38bdf8',
+    Binary: '#f59e0b',
+    OSINT: '#22c55e',
+    Misc: '#84cc16',
+    Forensic: '#ef4444'
+  };
+
+  const solvedCategoryCounts = (team.solvedChallenges || []).reduce((acc, solved) => {
+    const category = solved?.challengeId?.category;
+    if (!category) {
+      return acc;
+    }
+    acc[category] = (acc[category] || 0) + 1;
+    return acc;
+  }, {});
+
+  const categoryBreakdownData = Object.entries(solvedCategoryCounts).map(([name, value]) => ({
+    name,
+    value,
+    color: categoryColorMap[name] || '#a3a3a3'
+  }));
 
   return (
     <Layout>
@@ -130,53 +152,80 @@ function TeamGraph() {
              <Target className="text-cyber-blue h-5 w-5" />
              <h2 className="text-xl font-black text-white uppercase tracking-tight">Submission Summary</h2>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="h-64 relative">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={summaryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                    animationDuration={1500}
-                    stroke="none"
-                  >
-                    {summaryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} style={{ filter: `drop-shadow(0 0 5px ${entry.color})` }} />
-                    ))}
-                  </Pie>
-                  <RechartsTooltip 
-                    contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                    itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Total</span>
-                <span className="text-2xl font-black text-white">{team.teamSubmissionStats?.totalAttempts || 0}</span>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="cyber-card p-6">
+              <h3 className="text-lg font-black uppercase tracking-widest text-cyber-green mb-4">Solve Percentages</h3>
+              <div className="h-64 bg-black/30 rounded-lg p-4 border border-white/5">
+                {solvePercentageData.length ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart margin={{ top: 20, right: 24, bottom: 20, left: 24 }}>
+                      <Pie
+                        data={solvePercentageData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="52%"
+                        innerRadius={50}
+                        outerRadius={72}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(2)}%`}
+                        labelLine
+                      >
+                        {solvePercentageData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip formatter={(value) => Number(value).toLocaleString()} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-white/40 font-mono text-xs uppercase tracking-widest">
+                    No submission data available
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-xl border border-white/5 group hover:bg-white/10 transition-colors">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS.successful, boxShadow: `0 0 10px ${CHART_COLORS.successful}` }}></div>
-                <div className="min-w-0">
-                  <p className="text-xs font-black text-white/40 uppercase tracking-widest">Successful</p>
-                  <p className="text-2xl font-black text-white tracking-tighter">{team.teamSubmissionStats?.successfulSubmissions || 0}</p>
-                </div>
+            <div className="cyber-card p-6">
+              <h3 className="text-lg font-black uppercase tracking-widest text-cyber-blue mb-4">Category Breakdown</h3>
+              <div className="h-64 bg-black/30 rounded-lg p-4 border border-white/5">
+                {categoryBreakdownData.length ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={categoryBreakdownData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="40%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={82}
+                        label={({ percent, value }) => `${(percent * 100).toFixed(2)}% (${value})`}
+                        labelLine
+                      >
+                        {categoryBreakdownData.map((entry) => (
+                          <Cell key={entry.name} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip formatter={(value) => Number(value).toLocaleString()} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-white/40 font-mono text-xs uppercase tracking-widest">
+                    No solved category data
+                  </div>
+                )}
               </div>
-              <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-xl border border-white/5 group hover:bg-white/10 transition-colors">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: CHART_COLORS.failed, boxShadow: `0 0 10px ${CHART_COLORS.failed}` }}></div>
-                <div className="min-w-0">
-                  <p className="text-xs font-black text-white/40 uppercase tracking-widest">Failed</p>
-                  <p className="text-2xl font-black text-white tracking-tighter">{team.teamSubmissionStats?.failedSubmissions || 0}</p>
+              {categoryBreakdownData.length > 0 && (
+                <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-mono">
+                  {categoryBreakdownData.map((item) => (
+                    <div key={item.name} className="flex items-center text-white/70">
+                      <span className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: item.color }}></span>
+                      {item.name}
+                    </div>
+                  ))}
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
