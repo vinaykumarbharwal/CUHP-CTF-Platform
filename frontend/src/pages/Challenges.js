@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import Layout from '../components/Layout';
 import api from '../services/api';
@@ -9,6 +9,7 @@ function Challenges() {
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const [flag, setFlag] = useState('');
   const [category, setCategory] = useState('All');
+  const [solveFilter, setSolveFilter] = useState('Unsolved');
   const [team, setTeam] = useState(null);
 
   useEffect(() => {
@@ -50,16 +51,36 @@ function Challenges() {
     }
   };
 
-  const isSolved = (challengeId) => {
-    return team?.solvedChallenges?.some((sc) => sc.challengeId?._id === challengeId);
-  };
+  const solvedChallengeIds = useMemo(() => {
+    const solvedList = team?.solvedChallenges || [];
+    return new Set(
+      solvedList
+        .map((sc) => {
+          const rawId = sc?.challengeId;
+          if (!rawId) {
+            return null;
+          }
+          return typeof rawId === 'string' ? rawId : rawId._id;
+        })
+        .filter(Boolean)
+    );
+  }, [team]);
+
+  const isSolved = (challengeId) => solvedChallengeIds.has(challengeId);
 
   const isSelectedChallengeSolved = selectedChallenge ? isSolved(selectedChallenge._id) : false;
 
   const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'];
-  const filteredChallenges = category === 'All' 
-    ? challenges 
+  const categoryFilteredChallenges = category === 'All'
+    ? challenges
     : challenges.filter((c) => c.category?.toLowerCase() === category.toLowerCase());
+
+  const filteredChallenges = categoryFilteredChallenges.filter((challenge) => {
+    if (solveFilter === 'Solved') {
+      return isSolved(challenge._id);
+    }
+    return !isSolved(challenge._id);
+  });
 
   return (
     <Layout>
@@ -88,13 +109,32 @@ function Challenges() {
           ))}
         </div>
 
+        {/* Solve Status Filter */}
+        <div className="flex space-x-3 mb-10 overflow-x-auto pb-2">
+          {['Solved', 'Unsolved'].map((status) => (
+            <button
+              key={status}
+              onClick={() => setSolveFilter(status)}
+              className={`px-6 py-2 rounded font-black uppercase tracking-widest text-xs transition-all duration-300 border-2 ${
+                solveFilter === status
+                  ? 'bg-cyber-green border-cyber-green text-black shadow-[0_0_20px_rgba(0,255,65,0.35)]'
+                  : 'border-cyber-green/30 text-cyber-green/70 hover:border-cyber-green hover:text-cyber-green'
+              }`}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+
         {/* Challenges Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredChallenges.map((challenge) => (
             <div
               key={challenge._id}
               className={`cyber-card p-6 cursor-pointer group flex flex-col justify-between ${
-                isSolved(challenge._id) ? 'border-cyber-green/50 opacity-60' : 'border-cyber-blue/20'
+                isSolved(challenge._id)
+                  ? 'bg-cyber-green/15 border-cyber-green shadow-[0_0_24px_rgba(0,255,65,0.25)]'
+                  : 'border-cyber-blue/20'
               }`}
               onClick={() => setSelectedChallenge(challenge)}
             >
@@ -110,14 +150,20 @@ function Challenges() {
                     {challenge.difficulty}
                   </span>
                 </div>
-                <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2 group-hover:text-cyber-blue transition-colors">
+                <h3 className={`text-xl font-black uppercase tracking-tight mb-2 transition-colors ${
+                  isSolved(challenge._id)
+                    ? 'text-cyber-green group-hover:text-cyber-green'
+                    : 'text-white group-hover:text-cyber-blue'
+                }`}>
                   {challenge.title}
                 </h3>
               </div>
               
               <div className="mt-6 flex items-end justify-between">
                 <div>
-                   <p className="text-2xl font-black text-cyber-blue leading-none">{challenge.points}</p>
+                   <p className={`text-2xl font-black leading-none ${
+                     isSolved(challenge._id) ? 'text-cyber-green' : 'text-cyber-blue'
+                   }`}>{challenge.points}</p>
                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Points</p>
                 </div>
                 <div className="text-right">
