@@ -71,16 +71,28 @@ function Challenges() {
   const isSelectedChallengeSolved = selectedChallenge ? isSolved(selectedChallenge._id) : false;
 
   const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'];
-  const categoryFilteredChallenges = category === 'All'
-    ? challenges
-    : challenges.filter((c) => c.category?.toLowerCase() === category.toLowerCase());
+  
+  const finalChallenges = useMemo(() => {
+    let result = challenges;
 
-  const filteredChallenges = categoryFilteredChallenges.filter((challenge) => {
-    if (solveFilter === 'Solved') {
-      return isSolved(challenge._id);
+    // Filter by Category
+    if (category !== 'All') {
+      result = result.filter((c) => c.category?.toLowerCase() === category.toLowerCase());
     }
-    return !isSolved(challenge._id);
-  });
+
+    // Filter by Solve Status
+    result = result.filter((challenge) => {
+      if (solveFilter === 'Solved') {
+        return isSolved(challenge._id);
+      }
+      return !isSolved(challenge._id);
+    });
+
+    // Sort by Points (High to Low)
+    result = [...result].sort((a, b) => b.points - a.points);
+
+    return result;
+  }, [challenges, category, solveFilter, solvedChallengeIds]);
 
   return (
     <Layout>
@@ -93,7 +105,7 @@ function Challenges() {
         </div>
 
         {/* Categories */}
-        <div className="flex space-x-3 mb-10 overflow-x-auto pb-4">
+        <div className="flex space-x-3 mb-6 overflow-x-auto pb-4">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -110,7 +122,7 @@ function Challenges() {
         </div>
 
         {/* Solve Status Filter */}
-        <div className="flex space-x-3 mb-10 overflow-x-auto pb-2">
+        <div className="flex space-x-3 mb-10">
           {['Solved', 'Unsolved'].map((status) => (
             <button
               key={status}
@@ -128,7 +140,7 @@ function Challenges() {
 
         {/* Challenges Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredChallenges.map((challenge) => (
+          {finalChallenges.map((challenge) => (
             <div
               key={challenge._id}
               className={`cyber-card p-6 cursor-pointer group flex flex-col justify-between ${

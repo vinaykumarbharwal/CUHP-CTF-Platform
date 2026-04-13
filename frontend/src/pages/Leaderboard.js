@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { Trophy, Medal, Loader2 } from 'lucide-react';
 import AllTeamsProgressChart from '../components/Graph/AllTeamsProgressChart';
@@ -108,7 +109,6 @@ function Leaderboard() {
               <tr className="bg-white/5 border-b border-white/10">
                 <th className="px-6 py-4 text-left text-xs font-black text-cyber-green uppercase tracking-[0.2em]">Rank</th>
                 <th className="px-6 py-4 text-left text-xs font-black text-cyber-green uppercase tracking-[0.2em]">Team Name</th>
-                <th className="px-6 py-4 text-left text-xs font-black text-cyber-green uppercase tracking-[0.2em]">Members</th>
                 <th className="px-6 py-4 text-left text-xs font-black text-cyber-green uppercase tracking-[0.2em]">Score</th>
                 <th className="px-6 py-4 text-left text-xs font-black text-cyber-green uppercase tracking-[0.2em]">Solved</th>
               </tr>
@@ -120,17 +120,14 @@ function Leaderboard() {
                     <div className="flex items-center">{getRankIcon(team.rank)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-black text-white uppercase group-hover:text-cyber-green transition-colors">{team.name}</div>
+                    <Link to={`/graph?teamId=${team.id}`} className="block group/link">
+                      <div className="text-sm font-black text-white uppercase group-hover/link:text-cyber-green transition-colors flex items-center">
+                        {team.name}
+                        <div className="ml-2 w-1 h-1 rounded-full bg-cyber-green opacity-0 group-hover/link:opacity-100 transition-opacity shadow-[0_0_5px_#00ff41]"></div>
+                      </div>
+                    </Link>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex -space-x-2">
-                      {team.members.map((m, idx) => (
-                        <div key={idx} className="w-7 h-7 rounded-full bg-cyber-dark-lighter border border-cyber-green/30 flex items-center justify-center text-[10px] font-black text-cyber-green" title={m.username}>
-                          {m.username.charAt(0).toUpperCase()}
-                        </div>
-                      ))}
-                    </div>
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-xl font-black text-cyber-blue tracking-tighter">{team.totalScore}</div>
                   </td>

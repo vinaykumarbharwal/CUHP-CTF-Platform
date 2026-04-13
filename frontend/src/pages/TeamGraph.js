@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
   PieChart, 
@@ -21,20 +22,23 @@ const CHART_COLORS = {
 };
 
 function TeamGraph() {
+  const [searchParams] = useSearchParams();
+  const teamId = searchParams.get('teamId');
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [teamId]);
 
   const fetchData = async () => {
     try {
-      const response = await api.get('/teams/my/team');
+      const endpoint = teamId ? `/teams/${teamId}` : '/teams/my/team';
+      const response = await api.get(endpoint);
       setTeam(response.data);
     } catch (error) {
       if (error.response?.status === 404) {
-        toast.error('Join a team to view progress insights');
+        toast.error(teamId ? 'Team data not found' : 'Join a team to view progress insights');
       } else {
         toast.error('Failed to load performance data');
       }
@@ -91,7 +95,9 @@ function TeamGraph() {
              <Activity className="text-cyber-blue h-6 w-6" />
              <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Team Progress <span className="text-cyber-blue">Insights</span></h1>
           </div>
-          <p className="text-white/50 font-mono text-xs uppercase tracking-widest">Performance summary and member contribution for {team.name}</p>
+          <p className="text-white/50 font-mono text-xs uppercase tracking-widest">
+            {teamId ? `Competition intelligence report for ${team.name}` : `Performance summary and member contribution for your team: ${team.name}`}
+          </p>
         </div>
 
         {/* Top Summary Stats */}
