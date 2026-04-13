@@ -66,6 +66,76 @@ const challenges = [
     points: 10,
     flag: 'CUHP{pcap_analysis_entry}',
     hint: 'Just copy the flag from the description for this sample challenge.'
+  },
+  {
+    title: 'WhatsApp Whisper',
+    description:
+      'OSINT Challenge: A clue is hidden in a WhatsApp shared link. Open the link and inspect the visible metadata (group/channel name, about text, preview details, or linked profile clues). The flag is hidden in one of those public details. WhatsApp Link: REPLACE_WITH_WHATSAPP_LINK',
+    category: 'OSINT',
+    difficulty: 'Easy',
+    points: 150,
+    flag: 'CUHP{replace_with_whatsapp_whisper_flag}',
+    hint: 'Carefully read all text shown in the preview and related public info. Do not brute-force; this is a reconnaissance task.'
+  },
+  {
+    title: 'Social Stalker',
+    description:
+      'OSINT Challenge: Investigate the target social media account and inspect the specified post. Username: imgautii. Task: find the post clue and extract the exact flag from the caption text.',
+    category: 'OSINT',
+    difficulty: 'Medium',
+    points: 200,
+    flag: 'CUHP{replace_with_social_stalker_flag}',
+    hint: 'The flag is in the caption of the intended post. Watch for exact casing, symbols, and braces.'
+  },
+  {
+    title: 'Location Finder',
+    description:
+      'OSINT Challenge: Identify the exact place shown in the evidence image and submit the hidden flag. Evidence clue: a clock tower near a roundabout with a red-brick library in the background. Use map tools and image clues to triangulate the location.',
+    category: 'OSINT',
+    difficulty: 'Medium',
+    points: 220,
+    flag: 'CUHP{clocktower_roundabout_trace}',
+    hint: 'Focus on unique landmarks, road signs, and architectural style. Narrow down city first, then specific coordinates.'
+  },
+  {
+    title: 'What Comes Next',
+    description:
+      'Logic Challenge: Find the next value in this sequence and format it as the flag body: 2, 6, 12, 20, 30, ?. Submit as CUHP{next_value}.',
+    category: 'Misc',
+    difficulty: 'Easy',
+    points: 120,
+    flag: 'CUHP{42}',
+    hint: 'Look at the difference between terms: +4, +6, +8, +10, ...'
+  },
+  {
+    title: 'String Hunter',
+    description:
+      'Forensic Challenge: You recovered a suspicious text blob from memory. Extract the likely flag from this noisy string: xx7A9CUHP{str1ngs_c4n_t3ll_st0r13s}Q2pLm. Submit exactly what looks like the valid flag.',
+    category: 'Forensic',
+    difficulty: 'Easy',
+    points: 140,
+    flag: 'CUHP{str1ngs_c4n_t3ll_st0r13s}',
+    hint: 'Flags in this platform always start with CUHP{ and end with }.'
+  },
+  {
+    title: 'Old Is Gold',
+    description:
+      'Crypto Challenge: A classic Caesar cipher was used with shift 13. Decrypt this text: PHUC{byq_vf_tbyq}.',
+    category: 'Crypto',
+    difficulty: 'Easy',
+    points: 160,
+    flag: 'CUHP{old_is_gold}',
+    hint: 'ROT13 is Caesar shift 13 and is symmetric.'
+  },
+  {
+    title: 'Upgraded Gold',
+    description:
+      'Crypto Challenge: The same phrase from Old Is Gold was upgraded using Base64. Decode this: Q1VIUHt1cGdyYWRlZF9nb2xkfQ==',
+    category: 'Crypto',
+    difficulty: 'Medium',
+    points: 240,
+    flag: 'CUHP{upgraded_gold}',
+    hint: 'The encoded text uses a common ASCII-safe encoding often ending in =.'
   }
 ];
 
