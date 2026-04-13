@@ -84,6 +84,11 @@ async function attachMemberSubmissionStats(teamDoc) {
       $group: {
         _id: null,
         totalAttempts: { $sum: 1 },
+        totalScoreFromSubmissions: {
+          $sum: {
+            $cond: [{ $eq: ['$isCorrect', true] }, '$points', 0]
+          }
+        },
         successfulSubmissions: {
           $sum: {
             $cond: [{ $eq: ['$isCorrect', true] }, 1, 0]
@@ -108,6 +113,9 @@ async function attachMemberSubmissionStats(teamDoc) {
     return acc;
   }, {});
 
+  const submissionDerivedTotalScore = teamTotals[0]?.totalScoreFromSubmissions || 0;
+  team.totalScore = submissionDerivedTotalScore;
+
   team.memberSubmissionStats = (team.members || []).map((member) => {
     const memberId = String(member._id || member);
     const memberStats = statsMap[memberId] || {
@@ -116,7 +124,7 @@ async function attachMemberSubmissionStats(teamDoc) {
       totalSubmissions: 0,
       incorrectSubmissions: 0
     };
-    const totalScore = team.totalScore || 0;
+    const totalScore = submissionDerivedTotalScore;
     const contributionPercent = totalScore > 0
       ? Number(((memberStats.points / totalScore) * 100).toFixed(2))
       : 0;

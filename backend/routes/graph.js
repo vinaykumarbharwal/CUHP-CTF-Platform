@@ -50,12 +50,31 @@ router.get('/my-team', auth, async (req, res) => {
 
 router.get('/all-teams', auth, async (req, res) => {
   try {
-    const teams = await Team.find({}, '_id name totalScore').lean();
+    const teams = await Team.find({}, '_id name').lean();
+
+    const scoreTotals = await Submission.aggregate([
+      {
+        $match: {
+          isCorrect: true
+        }
+      },
+      {
+        $group: {
+          _id: '$teamId',
+          totalScore: { $sum: '$points' }
+        }
+      }
+    ]);
+
+    const totalScoreMap = scoreTotals.reduce((acc, item) => {
+      acc[String(item._id)] = item.totalScore || 0;
+      return acc;
+    }, {});
 
     const initialSeries = teams.map((team) => ({
       teamId: String(team._id),
       teamName: team.name,
-      totalScore: team.totalScore || 0,
+      totalScore: totalScoreMap[String(team._id)] || 0,
       points: []
     }));
 

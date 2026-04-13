@@ -100,42 +100,152 @@ const challenges = [
   {
     title: 'What Comes Next',
     description:
-      'Logic Challenge: Find the next value in this sequence and format it as the flag body: 2, 6, 12, 20, 30, ?. Submit as CUHP{next_value}.',
+      'Logic Challenge: Complete the pattern: One, Two, Three, Four, ?. Submit the answer as a flag.',
     category: 'Misc',
     difficulty: 'Easy',
-    points: 120,
-    flag: 'CUHP{42}',
-    hint: 'Look at the difference between terms: +4, +6, +8, +10, ...'
+    points: 100,
+    flag: 'CUHP{Five}',
+    hint: 'The sequence is based on counting words.'
   },
   {
     title: 'String Hunter',
     description:
-      'Forensic Challenge: You recovered a suspicious text blob from memory. Extract the likely flag from this noisy string: xx7A9CUHP{str1ngs_c4n_t3ll_st0r13s}Q2pLm. Submit exactly what looks like the valid flag.',
+      'Binary/Reverse Warmup: Find the valid flag hidden inside this noisy string: XX91__CUHP{s0m3th1ng_l1k3_th1s}__AB77. Submit the exact flag only.',
     category: 'Forensic',
     difficulty: 'Easy',
-    points: 140,
-    flag: 'CUHP{str1ngs_c4n_t3ll_st0r13s}',
+    points: 120,
+    flag: 'CUHP{s0m3th1ng_l1k3_th1s}',
     hint: 'Flags in this platform always start with CUHP{ and end with }.'
   },
   {
     title: 'Old Is Gold',
     description:
-      'Crypto Challenge: A classic Caesar cipher was used with shift 13. Decrypt this text: PHUC{byq_vf_tbyq}.',
+      'Crypto Challenge: Decode the following Base64 text: Q1VIUHtCYXNlNjRfRW5jb2RlZH0=',
     category: 'Crypto',
     difficulty: 'Easy',
-    points: 160,
-    flag: 'CUHP{old_is_gold}',
-    hint: 'ROT13 is Caesar shift 13 and is symmetric.'
+    points: 100,
+    flag: 'CUHP{Base64_Encoded}',
+    hint: 'Use a Base64 decoder.'
   },
   {
     title: 'Upgraded Gold',
     description:
-      'Crypto Challenge: The same phrase from Old Is Gold was upgraded using Base64. Decode this: Q1VIUHt1cGdyYWRlZF9nb2xkfQ==',
+      'Crypto Challenge: Another Base64 warmup. Decode this value: Q1VIUHtCYXNlNjRfVXBncmFkZWQhfQ==',
     category: 'Crypto',
-    difficulty: 'Medium',
-    points: 240,
-    flag: 'CUHP{upgraded_gold}',
-    hint: 'The encoded text uses a common ASCII-safe encoding often ending in =.'
+    difficulty: 'Easy',
+    points: 120,
+    flag: 'CUHP{Base64_Upgraded!}',
+    hint: 'This is also standard Base64.'
+  },
+  {
+    title: 'Secret Shifts',
+    description:
+      'Crypto Challenge: Decode this ROT13 message: PHUC{E0G_1F_TbNG}',
+    category: 'Crypto',
+    difficulty: 'Easy',
+    points: 110,
+    flag: 'CUHP{R0T_1S_GoAT}',
+    hint: 'ROT13 shifts letters by 13.'
+  },
+  {
+    title: 'Byte Sequence',
+    description:
+      'Crypto Challenge: Decode this hex string to text: 435548507b4833585f31535f4433434f4433447d',
+    category: 'Crypto',
+    difficulty: 'Easy',
+    points: 110,
+    flag: 'CUHP{H3X_1S_D3COD3D}',
+    hint: 'Each two hex characters represent one byte.'
+  },
+  {
+    title: 'Morse Code Breaker',
+    description:
+      'Crypto Challenge: Decode this Morse code: -.-. ..- .... .--. --..-- -.-. .-. .- -.-. -.- . -.. --..-- -- --- .-. ... . --..-- -.-. --- -.. .',
+    category: 'Crypto',
+    difficulty: 'Easy',
+    points: 120,
+    flag: 'CUHP{CRACKED_MORSE_CODE}',
+    hint: 'Use a Morse decoder and format the final answer as the flag shown in challenge logic.'
+  },
+  {
+    title: 'CrackMe Basic',
+    description:
+      'Reverse Warmup: The password checker compares input with this string in binary: simple_crackme_done. Submit the matching flag.',
+    category: 'Binary',
+    difficulty: 'Easy',
+    points: 130,
+    flag: 'CUHP{simple_crackme_done}',
+    hint: 'Static strings in binaries are often the key.'
+  },
+  {
+    title: 'Login Bypass',
+    description:
+      'Web Challenge: Basic login filter can be bypassed with simple SQLi payloads. Submit the known success flag.',
+    category: 'Web',
+    difficulty: 'Easy',
+    points: 120,
+    flag: 'CUHP{SQLI_BYPASS_SUCCESS}',
+    hint: 'Think of classic username payloads using OR conditions.'
+  },
+  {
+    title: 'Open Redirect',
+    description:
+      'Web Challenge: A redirect endpoint trusts user input and can be abused. Find and submit the flag.',
+    category: 'Web',
+    difficulty: 'Easy',
+    points: 110,
+    flag: 'CUHP{redirected_successfully}',
+    hint: 'Inspect URL parameters controlling destination URLs.'
+  },
+  {
+    title: 'Most Famous Hacker',
+    description:
+      'OSINT Challenge: Identify the hacker known as The Condor and submit the flag with lowercase name.',
+    category: 'OSINT',
+    difficulty: 'Easy',
+    points: 90,
+    flag: 'CUHP{kevin_mitnick}',
+    hint: 'This is a well-known figure in hacking history.'
+  },
+  {
+    title: 'Metadata Leak',
+    description:
+      'OSINT/Forensics Challenge: A file leaked hidden EXIF comment text containing the flag. Submit the leaked flag.',
+    category: 'OSINT',
+    difficulty: 'Easy',
+    points: 100,
+    flag: 'CUHP{meta_data_exposed}',
+    hint: 'Use metadata viewers for images or documents.'
+  },
+  {
+    title: 'Modu Dodu',
+    description:
+      'Misc Challenge: Rearrange and normalize this noisy text into uppercase letters only: h3ll0_h4ck3r. Submit the final clean flag.',
+    category: 'Misc',
+    difficulty: 'Easy',
+    points: 100,
+    flag: 'CUHP{HELLOHACKER}',
+    hint: 'Remove symbols and convert number substitutions to letters.'
+  },
+  {
+    title: 'Final Destination',
+    description:
+      'Misc Challenge: Final warmup. Recover the phrase from this text: HACKER_IS_ALWAYS_A_HACKER and submit as flag.',
+    category: 'Misc',
+    difficulty: 'Easy',
+    points: 90,
+    flag: 'CUHP{HACKER_IS_ALWAYS_A_HACKER!}',
+    hint: 'Pay attention to punctuation in the final flag.'
+  },
+  {
+    title: 'Hidden Archive',
+    description:
+      'Forensics Challenge: A zip file contains another zip file, and the inner archive contains the flag text.',
+    category: 'Forensic',
+    difficulty: 'Easy',
+    points: 120,
+    flag: 'CUHP{zip_inside_zip}',
+    hint: 'Try extracting recursively.'
   }
 ];
 

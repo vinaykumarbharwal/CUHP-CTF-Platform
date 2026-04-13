@@ -78,6 +78,10 @@ function TeamGraph() {
 
   const summaryData = getSummaryData();
   const successRate = team.teamSubmissionStats?.successRatePercent || 0;
+  const recentSolvedChallenges = [...(team.solvedChallenges || [])]
+    .filter((item) => item?.challengeId?.title)
+    .sort((a, b) => new Date(b.solvedAt) - new Date(a.solvedAt))
+    .slice(0, 8);
 
   return (
     <Layout>
@@ -188,9 +192,8 @@ function TeamGraph() {
             <div className="space-y-4">
               {(team.memberSubmissionStats || []).map((member) => (
                 <div key={member.userId} className="p-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors group">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center mb-3">
                     <p className="font-black text-white uppercase tracking-tight text-base group-hover:text-cyber-blue transition-colors">{member.username}</p>
-                    <p className="text-xl font-black text-cyber-green tracking-tighter">{numberFormatter.format(member.points)} PTS</p>
                   </div>
                   <div className="grid grid-cols-3 gap-4 border-t border-white/5 pt-3">
                     <div>
@@ -218,16 +221,14 @@ function TeamGraph() {
                <h2 className="text-xl font-black text-white uppercase tracking-tight">Recent System Breaks</h2>
             </div>
             
-            {team.solvedChallenges?.length ? (
+            {recentSolvedChallenges.length ? (
               <div className="space-y-3">
-                {[...team.solvedChallenges]
-                  .sort((a, b) => new Date(b.solvedAt) - new Date(a.solvedAt))
-                  .slice(0, 8)
+                {recentSolvedChallenges
                   .map((item) => (
                     <div key={item.challengeId?._id || item.solvedAt} className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-lg group hover:border-cyber-green/30 transition-colors">
                       <div className="flex items-center space-x-3 truncate">
                          <div className="w-1.5 h-1.5 bg-cyber-green rounded-full shadow-[0_0_5px_#00ff41]"></div>
-                         <p className="font-black text-white/80 uppercase text-xs truncate group-hover:text-white transition-colors">{item.challengeId?.title || 'Unknown Asset'}</p>
+                         <p className="font-black text-white/80 uppercase text-xs truncate group-hover:text-white transition-colors">{item.challengeId.title}</p>
                       </div>
                       <p className="text-[10px] font-mono text-white/30 shrink-0 ml-4 group-hover:text-cyber-green transition-colors italic">
                         {item.solvedAt ? format(new Date(item.solvedAt), 'yyyy.MM.dd HH:mm') : 'No Date'}
