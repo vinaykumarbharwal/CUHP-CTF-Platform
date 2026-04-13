@@ -26,6 +26,7 @@ const challengeRoutes = require('./routes/challenges');
 const submissionRoutes = require('./routes/submissions');
 const leaderboardRoutes = require('./routes/leaderboard');
 const graphRoutes = require('./routes/graph');
+const statsRoutes = require('./routes/stats');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/teams', teamRoutes);
@@ -33,6 +34,7 @@ app.use('/api/challenges', challengeRoutes);
 app.use('/api/submit', submissionRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/graph', graphRoutes);
+app.use('/api/stats', statsRoutes);
 
 const PORT = process.env.PORT || 5001;
 

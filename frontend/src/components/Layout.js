@@ -18,15 +18,15 @@ function Layout({ children }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
-              <div className="flex-shrink-0 flex items-center group">
+              <div className="flex-shrink-0 flex items-center group cursor-pointer" onClick={() => navigate('/dashboard')}>
                 <div className="relative">
                   <Trophy className="h-8 w-8 text-cyber-green group-hover:scale-110 transition-transform" />
                   <div className="absolute inset-0 bg-cyber-green/20 blur-lg rounded-full animate-pulse"></div>
                 </div>
-                <span className="ml-3 text-2xl font-black text-white tracking-tighter uppercase italic group-hover:text-cyber-green transition-colors">CUHP CTF</span>
+                <span className="ml-3 text-2xl font-black text-white tracking-tighter uppercase italic group-hover:text-cyber-green transition-colors font-bytebounce">CUHP CTF</span>
               </div>
               <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
-                <Link to="/" className="inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-widest text-white/70 hover:text-cyber-green transition-colors border-b-2 border-transparent hover:border-cyber-green">
+                <Link to="/dashboard" className="inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-widest text-white/70 hover:text-cyber-green transition-colors border-b-2 border-transparent hover:border-cyber-green">
                   <LayoutDashboard className="h-4 w-4 mr-2" />Dashboard
                 </Link>
                 <Link to="/challenges" className="inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-widest text-white/70 hover:text-cyber-green transition-colors border-b-2 border-transparent hover:border-cyber-green">

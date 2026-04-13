@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { Trophy } from 'lucide-react';
+import { Trophy, ChevronLeft } from 'lucide-react';
+import bgImage from '../assets/images/bg.png';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -13,24 +14,31 @@ function Login() {
     e.preventDefault();
     const success = await login(email.trim(), password);
     if (success) {
-      navigate('/');
+      navigate('/dashboard');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <div className="cyber-glass max-w-md w-full p-10 rounded-2xl shadow-2xl border border-cyber-green/20 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-cyber-dark relative overflow-hidden" style={{ backgroundImage: `linear-gradient(rgba(10, 20, 20, 0.8), rgba(10, 20, 20, 0.8)), url(${bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
+      
+      <div className="cyber-glass max-w-md w-full p-10 rounded-2xl shadow-2xl border border-cyber-green/20 relative overflow-hidden animate-in fade-in zoom-in duration-500">
         {/* Decorative background element */}
         <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyber-green/10 blur-3xl rounded-full"></div>
         <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-cyber-blue/10 blur-3xl rounded-full"></div>
 
         <div className="relative">
+          {/* Back Button */}
+          <Link to="/" className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-cyber-green transition-colors mb-8 group">
+            <ChevronLeft className="h-4 w-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+            Back to Home
+          </Link>
+
           <div className="flex flex-col items-center mb-10">
             <div className="relative mb-4">
               <Trophy className="h-16 w-16 text-cyber-green" />
               <div className="absolute inset-0 bg-cyber-green/20 blur-xl rounded-full animate-pulse"></div>
             </div>
-            <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic font-bytebounce">
+            <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic font-bytebounce text-center">
               CUHP <span className="text-cyber-green">CTF Platform</span>
             </h2>
             <p className="mt-2 text-sm text-white/50 font-mono text-center uppercase">Sign in to start competing</p>
