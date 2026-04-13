@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format, isValid } from 'date-fns';
+import { Activity } from 'lucide-react';
 
 const TEAM_COLORS = [
   '#2563EB',
