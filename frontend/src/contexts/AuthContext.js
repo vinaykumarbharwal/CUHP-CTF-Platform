@@ -25,12 +25,28 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Force a fresh auth session on every app start.
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    delete axios.defaults.headers.common.Authorization;
-    setToken(null);
-    setUser(null);
+    const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+
+    if (storedToken && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        axios.defaults.headers.common.Authorization = `Bearer ${storedToken}`;
+        setToken(storedToken);
+        setUser(parsedUser);
+      } catch (error) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        delete axios.defaults.headers.common.Authorization;
+        setToken(null);
+        setUser(null);
+      }
+    } else {
+      delete axios.defaults.headers.common.Authorization;
+      setToken(null);
+      setUser(null);
+    }
+
     setLoading(false);
   }, []);
 
