@@ -13,12 +13,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const limiter = rateLimit({
+const writeApiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests from this IP'
+  max: 120,
+  message: { error: 'Too many write requests from this IP. Please try again later.' },
+  keyGenerator: (req) => `${req.ip}:${req.baseUrl}${req.path}`,
+  skip: (req) => ['GET', 'HEAD', 'OPTIONS'].includes(req.method),
+  standardHeaders: true,
+  legacyHeaders: false
 });
-app.use('/api/', limiter);
+app.use('/api/', writeApiLimiter);
 
 const authRoutes = require('./routes/auth');
 const teamRoutes = require('./routes/teams');

@@ -19,7 +19,12 @@ function Challenges() {
       const response = await api.get('/challenges');
       setChallenges(response.data);
     } catch (error) {
-      toast.error('Failed to load challenges');
+      const errorData = error?.response?.data;
+      const errorMessage =
+        typeof errorData === 'string'
+          ? errorData
+          : errorData?.error || errorData?.message || 'Failed to load challenges';
+      toast.error(errorMessage);
     }
   };
 
