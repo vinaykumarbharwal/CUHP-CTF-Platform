@@ -1,7 +1,18 @@
 ﻿import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const normalizeBaseUrl = (rawUrl) => {
+  if (!rawUrl || !rawUrl.trim()) {
+    return null;
+  }
+
+  const trimmed = rawUrl.trim().replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const API_URL =
+  normalizeBaseUrl(process.env.REACT_APP_API_URL) ||
+  (process.env.NODE_ENV === 'production' ? 'https://cuhp-ctf-backend.onrender.com/api' : 'http://localhost:5000/api');
 
 const api = axios.create({
   baseURL: API_URL,
