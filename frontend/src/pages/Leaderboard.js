@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { Trophy, Medal, Loader2 } from 'lucide-react';
 import AllTeamsProgressChart from '../components/Graph/AllTeamsProgressChart';
 import api from '../services/api';
+import useAutoRefresh from '../hooks/useAutoRefresh';
 
 const COMPETITION_END_TIME = new Date('2026-04-13T03:02:00').getTime();
 
@@ -12,27 +13,9 @@ function Leaderboard() {
   const [graphSeries, setGraphSeries] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchLeaderboard();
-    
-    // Check if competition has already ended
-    const now = Date.now();
-    if (now >= COMPETITION_END_TIME) {
-      console.log('Competition ended. Live updates disabled.');
-      return;
-    }
+  const isLive = Date.now() < COMPETITION_END_TIME;
 
-    const interval = setInterval(() => {
-      if (Date.now() >= COMPETITION_END_TIME) {
-        clearInterval(interval);
-        console.log('Competition finished. Stopping updates.');
-        return;
-      }
-      fetchLeaderboard();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+  useAutoRefresh(fetchLeaderboard, { intervalMs: 30000, enabled: isLive || loading });
 
   const fetchLeaderboard = async () => {
     try {
@@ -68,8 +51,6 @@ function Leaderboard() {
       </Layout>
     );
   }
-
-  const isLive = Date.now() < COMPETITION_END_TIME;
 
   return (
     <Layout>

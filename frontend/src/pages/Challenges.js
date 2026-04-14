@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import { Trophy, Flag, LogOut } from 'lucide-react';
+import useAutoRefresh from '../hooks/useAutoRefresh';
 
 function Challenges() {
   const [challenges, setChallenges] = useState([]);
@@ -12,11 +13,6 @@ function Challenges() {
   const [solveFilter, setSolveFilter] = useState('Unsolved');
   const [showSolvedByList, setShowSolvedByList] = useState(false);
   const [team, setTeam] = useState(null);
-
-  useEffect(() => {
-    fetchChallenges();
-    fetchTeam();
-  }, []);
 
   const fetchChallenges = async () => {
     try {
@@ -36,6 +32,12 @@ function Challenges() {
     }
   };
 
+  const refreshPageData = async () => {
+    await Promise.all([fetchChallenges(), fetchTeam()]);
+  };
+
+  useAutoRefresh(refreshPageData, { intervalMs: 15000 });
+
   const submitFlag = async () => {
     try {
       const response = await api.post('/submit', {
@@ -46,8 +48,7 @@ function Challenges() {
       setSelectedChallenge(null);
       setShowSolvedByList(false);
       setFlag('');
-      fetchChallenges();
-      fetchTeam();
+      refreshPageData();
     } catch (error) {
       toast.error(error.response?.data?.error || 'Incorrect flag');
     }

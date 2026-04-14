@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
@@ -12,6 +12,7 @@ import Layout from '../components/Layout';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { Loader2, Activity, Users, ShieldCheck, Target } from 'lucide-react';
+import useAutoRefresh from '../hooks/useAutoRefresh';
 
 const numberFormatter = new Intl.NumberFormat('en-US');
 
@@ -26,10 +27,6 @@ function TeamGraph() {
   const teamId = searchParams.get('teamId');
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchData();
-  }, [teamId]);
 
   const fetchData = async () => {
     try {
@@ -47,6 +44,8 @@ function TeamGraph() {
       setLoading(false);
     }
   };
+
+  useAutoRefresh(fetchData, { intervalMs: 20000 });
 
   if (loading) {
     return (

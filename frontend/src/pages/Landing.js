@@ -1,29 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy, Globe, Shield, Terminal, Zap, ChevronRight, Activity, Cpu } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import bgImage from '../assets/images/bg.png';
+import useAutoRefresh from '../hooks/useAutoRefresh';
 
 const Landing = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ users: 0, teams: 0, challenges: 0, categories: [] });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await api.get('/stats');
-        setStats(response.data);
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-        // Fallback or handle error
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStats();
-  }, []);
+  const fetchStats = async () => {
+    try {
+      const response = await api.get('/stats');
+      setStats(response.data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useAutoRefresh(fetchStats, { intervalMs: 30000 });
 
   const getCategoryIcon = (category) => {
     switch (category.toLowerCase()) {
@@ -82,9 +81,13 @@ const Landing = () => {
           <div className="inline-flex items-center px-4 py-1 rounded-full bg-cyber-green/5 border border-cyber-green/20 text-cyber-green text-[10px] font-black uppercase tracking-[0.2em] mb-6 animate-pulse">
             <Activity className="h-3 w-3 mr-2" /> Live Connection: Established
           </div>
-          <h1 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter leading-none mb-6 font-bytebounce">
-            Defend. Exploit. <span className="text-cyber-green">Learn.</span> <br />
-            In Real Time
+          <h1 className="font-bytebounce font-black uppercase italic leading-[0.95] mb-6 text-3xl sm:text-5xl md:text-7xl lg:text-8xl">
+            <span className="block whitespace-nowrap tracking-[0.08em] sm:tracking-[0.16em] md:tracking-[0.2em]">
+              Defend. Exploit. <span className="text-cyber-green">Learn.</span>
+            </span>
+            <span className="block mt-3 whitespace-nowrap tracking-[0.12em] sm:tracking-[0.22em] md:tracking-[0.26em] text-2xl sm:text-4xl md:text-6xl lg:text-7xl">
+              In Real Time
+            </span>
           </h1>
           <p className="max-w-2xl mx-auto text-white/60 font-mono text-sm md:text-base mb-12 uppercase tracking-wide leading-relaxed">
             Train like a security analyst with practical CTF missions across web,

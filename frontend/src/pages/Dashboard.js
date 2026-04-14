@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { Trophy } from 'lucide-react';
 import Layout from '../components/Layout';
 import api from '../services/api';
+import useAutoRefresh from '../hooks/useAutoRefresh';
 
 function Dashboard() {
   const [team, setTeam] = useState(null);
@@ -10,10 +11,6 @@ function Dashboard() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
-
-  useEffect(() => {
-    fetchTeam();
-  }, []);
 
   const fetchTeam = async () => {
     try {
@@ -25,6 +22,8 @@ function Dashboard() {
       }
     }
   };
+
+  useAutoRefresh(fetchTeam, { intervalMs: 15000 });
 
   const createTeam = async () => {
     try {
