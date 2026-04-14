@@ -9,6 +9,8 @@ function Challenges() {
   const [challenges, setChallenges] = useState([]);
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const [flag, setFlag] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [challengeCooldowns, setChallengeCooldowns] = useState({});
   const [category, setCategory] = useState('All');
   const [solveFilter, setSolveFilter] = useState('Unsolved');
   const [showSolvedByList, setShowSolvedByList] = useState(false);
@@ -44,23 +46,57 @@ function Challenges() {
   useAutoRefresh(refreshPageData, { intervalMs: 15000 });
 
   const submitFlag = async () => {
+    if (!selectedChallenge?._id || isSubmitting) {
+      return;
+    }
+
+    const challengeId = selectedChallenge._id;
+    const cooldownUntil = challengeCooldowns[challengeId] || 0;
+    if (cooldownUntil > Date.now()) {
+      const waitSeconds = Math.max(1, Math.ceil((cooldownUntil - Date.now()) / 1000));
+      toast.error(`Too many attempts on this challenge. Try again in ${waitSeconds}s.`);
+      return;
+    }
+
+    const trimmedFlag = flag.trim();
+    if (!trimmedFlag) {
+      toast.error('Please enter a flag before submitting.');
+      return;
+    }
+
     try {
+      setIsSubmitting(true);
       const response = await api.post('/submit', {
-        challengeId: selectedChallenge._id,
-        flag
+        challengeId,
+        flag: trimmedFlag
       });
       toast.success(`Correct! +${response.data.points} points`);
+      setChallengeCooldowns((prev) => {
+        const next = { ...prev };
+        delete next[challengeId];
+        return next;
+      });
       setSelectedChallenge(null);
       setShowSolvedByList(false);
       setFlag('');
       refreshPageData();
     } catch (error) {
       const errorData = error?.response?.data;
+      const retryAfterSeconds = Number(errorData?.retryAfterSeconds || 0);
+      if (error?.response?.status === 429 && retryAfterSeconds > 0) {
+        setChallengeCooldowns((prev) => ({
+          ...prev,
+          [challengeId]: Date.now() + retryAfterSeconds * 1000
+        }));
+      }
+
       const errorMessage =
         typeof errorData === 'string'
           ? errorData
           : errorData?.error || errorData?.message || 'Incorrect flag';
       toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -82,6 +118,8 @@ function Challenges() {
   const isSolved = (challengeId) => solvedChallengeIds.has(challengeId);
 
   const isSelectedChallengeSolved = selectedChallenge ? isSolved(selectedChallenge._id) : false;
+  const isSelectedChallengeCoolingDown =
+    !!selectedChallenge?._id && (challengeCooldowns[selectedChallenge._id] || 0) > Date.now();
 
   const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'];
   
@@ -332,15 +370,27 @@ function Challenges() {
                       placeholder="CUHP{flag_here}"
                       value={flag}
                       onChange={(e) => setFlag(e.target.value)}
+                      disabled={isSubmitting || isSelectedChallengeCoolingDown}
                       className="cyber-input w-full font-mono border-cyber-blue/30 focus:border-cyber-blue"
                     />
                   </div>
+                  {isSelectedChallengeCoolingDown && (
+                    <p className="text-[10px] font-black uppercase tracking-widest text-red-400">
+                      Too many attempts on this challenge. Please try a little later.
+                    </p>
+                  )}
                   <div className="flex space-x-4">
                     <button onClick={() => {
                       setSelectedChallenge(null);
                       setShowSolvedByList(false);
                     }} className="flex-1 px-4 py-3 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
-                    <button onClick={submitFlag} className="cyber-button flex-[2] py-3 text-sm border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black">Submit</button>
+                    <button
+                      onClick={submitFlag}
+                      disabled={isSubmitting || isSelectedChallengeCoolingDown}
+                      className="cyber-button flex-[2] py-3 text-sm border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? 'Submitting...' : 'Submit'}
+                    </button>
                   </div>
                 </div>
               )}

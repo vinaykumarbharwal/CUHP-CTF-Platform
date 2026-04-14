@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Trophy, ChevronLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
 import bgImage from '../assets/images/bg.png';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailLocked, setEmailLocked] = useState(true);
   const [passwordLocked, setPasswordLocked] = useState(true);
   const { login } = useAuth();
@@ -14,7 +16,20 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await login(email.trim(), password);
+    if (isSubmitting) {
+      return;
+    }
+
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+    if (!trimmedEmail || !trimmedPassword) {
+      toast.error('Please enter both email and password.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const success = await login(trimmedEmail, trimmedPassword);
+    setIsSubmitting(false);
     if (success) {
       navigate('/dashboard');
     }
@@ -85,8 +100,8 @@ function Login() {
             </div>
 
             <div>
-              <button type="submit" className="cyber-button w-full py-3 text-sm">
-                Sign in
+              <button type="submit" disabled={isSubmitting} className="cyber-button w-full py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                {isSubmitting ? 'Signing in...' : 'Sign in'}
               </button>
             </div>
           </form>
