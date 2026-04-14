@@ -352,13 +352,6 @@ function Challenges() {
               <p className="text-white/70 font-mono text-sm leading-relaxed mb-6 bg-white/5 p-4 rounded border border-white/5">
                 {selectedChallenge.description}
               </p>
-              
-              {selectedChallenge.hint && (
-                <div className="flex items-start space-x-3 p-3 rounded bg-yellow-400/5 border border-yellow-400/20 mb-6">
-                  <div className="text-yellow-400 mt-0.5 italic font-black text-xs uppercase tracking-widest shrink-0">Hint:</div>
-                  <p className="text-yellow-400/80 text-xs italic">{selectedChallenge.hint}</p>
-                </div>
-              )}
 
               <div className="text-[10px] font-black text-white/40 uppercase tracking-widest bg-black/30 p-2 rounded inline-block">
                 <button

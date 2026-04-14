@@ -28,10 +28,6 @@ const challengeSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  hint: {
-    type: String,
-    default: null
-  },
   createdAt: {
     type: Date,
     default: Date.now
