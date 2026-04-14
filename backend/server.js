@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const rateLimit = require('express-rate-limit');
 const { connectDB } = require('./config/database');
 const Challenge = require('./models/Challenge');
 // const challengeSeedData = require('./data/challenges');
@@ -12,17 +11,6 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-const writeApiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 120,
-  message: { error: 'Too many write requests from this IP. Please try again later.' },
-  keyGenerator: (req) => `${req.ip}:${req.baseUrl}${req.path}`,
-  skip: (req) => ['GET', 'HEAD', 'OPTIONS'].includes(req.method),
-  standardHeaders: true,
-  legacyHeaders: false
-});
-app.use('/api/', writeApiLimiter);
 
 const authRoutes = require('./routes/auth');
 const teamRoutes = require('./routes/teams');
