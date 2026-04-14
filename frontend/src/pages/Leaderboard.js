@@ -15,9 +15,7 @@ function Leaderboard() {
 
   const isLive = Date.now() < COMPETITION_END_TIME;
 
-  useAutoRefresh(fetchLeaderboard, { intervalMs: 30000, enabled: isLive || loading });
-
-  const fetchLeaderboard = async () => {
+  async function fetchLeaderboard() {
     try {
       const [leaderboardResponse, graphResponse] = await Promise.all([
         api.get('/leaderboard'),
@@ -30,7 +28,9 @@ function Leaderboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useAutoRefresh(fetchLeaderboard, { intervalMs: 30000, enabled: isLive || loading });
 
   const getRankIcon = (rank) => {
     switch (rank) {
