@@ -9,6 +9,9 @@ dotenv.config();
 
 const app = express();
 
+// Hosted platforms sit behind reverse proxies; trust the first proxy for correct client IP handling.
+app.set('trust proxy', 1);
+
 app.use(cors());
 app.use(express.json());
 

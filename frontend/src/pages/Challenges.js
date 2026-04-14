@@ -11,16 +11,28 @@ function Challenges() {
   const [flag, setFlag] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [challengeCooldowns, setChallengeCooldowns] = useState({});
+  const [challengeFetchBlockedUntil, setChallengeFetchBlockedUntil] = useState(0);
   const [category, setCategory] = useState('All');
   const [solveFilter, setSolveFilter] = useState('Unsolved');
   const [showSolvedByList, setShowSolvedByList] = useState(false);
   const [team, setTeam] = useState(null);
 
   const fetchChallenges = async () => {
+    if (challengeFetchBlockedUntil > Date.now()) {
+      return;
+    }
+
     try {
       const response = await api.get('/challenges');
       setChallenges(response.data);
     } catch (error) {
+      const retryAfterHeader = Number(error?.response?.headers?.['retry-after'] || 0);
+      const retryAfterSeconds = Number(error?.response?.data?.retryAfterSeconds || 0);
+      const effectiveRetry = Math.max(retryAfterHeader, retryAfterSeconds);
+      if (error?.response?.status === 429 && effectiveRetry > 0) {
+        setChallengeFetchBlockedUntil(Date.now() + effectiveRetry * 1000);
+      }
+
       const errorData = error?.response?.data;
       const errorMessage =
         typeof errorData === 'string'
@@ -43,7 +55,7 @@ function Challenges() {
     await Promise.all([fetchChallenges(), fetchTeam()]);
   };
 
-  useAutoRefresh(refreshPageData, { intervalMs: 15000 });
+  useAutoRefresh(refreshPageData, { intervalMs: 30000, runOnFocus: false });
 
   const submitFlag = async () => {
     if (!selectedChallenge?._id || isSubmitting) {
@@ -159,7 +171,7 @@ function Challenges() {
       <div className="py-8">
         <div className="flex items-center space-x-4 mb-10">
           <div className="h-1 bg-cyber-blue w-12 rounded-full shadow-[0_0_10px_rgba(0,240,255,0.5)]"></div>
-          <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter uppercase italic">
             Challenges
           </h1>
         </div>
@@ -203,12 +215,12 @@ function Challenges() {
         )}
 
         {/* Categories */}
-        <div className="flex space-x-3 mb-6 overflow-x-auto pb-4">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 mb-6 pb-1">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`px-6 py-2 rounded font-black uppercase tracking-widest text-xs transition-all duration-300 border-2 ${
+              className={`w-full sm:w-auto px-3 sm:px-6 py-2 rounded font-black uppercase tracking-widest text-[10px] sm:text-xs transition-all duration-300 border-2 ${
                 category === cat 
                   ? 'bg-cyber-blue border-cyber-blue text-black shadow-[0_0_20px_rgba(0,240,255,0.4)]' 
                   : 'border-white/10 text-white/40 hover:border-white/30 hover:text-white'
@@ -220,12 +232,12 @@ function Challenges() {
         </div>
 
         {/* Solve Status Filter */}
-        <div className="flex space-x-3 mb-10">
+        <div className="grid grid-cols-2 sm:flex gap-3 mb-10">
           {['Solved', 'Unsolved'].map((status) => (
             <button
               key={status}
               onClick={() => setSolveFilter(status)}
-              className={`px-6 py-2 rounded font-black uppercase tracking-widest text-xs transition-all duration-300 border-2 ${
+              className={`w-full sm:w-auto px-3 sm:px-6 py-2 rounded font-black uppercase tracking-widest text-[10px] sm:text-xs transition-all duration-300 border-2 ${
                 solveFilter === status
                   ? 'bg-cyber-green border-cyber-green text-black shadow-[0_0_20px_rgba(0,255,65,0.35)]'
                   : 'border-cyber-green/30 text-cyber-green/70 hover:border-cyber-green hover:text-cyber-green'
@@ -300,7 +312,7 @@ function Challenges() {
       {/* Challenge Modal */}
       {selectedChallenge && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-[100] p-4">
-          <div className="cyber-glass max-w-lg w-full p-8 rounded-2xl shadow-[0_0_100px_rgba(0,240,255,0.1)] border-cyber-blue/30 relative">
+          <div className="cyber-glass max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-8 rounded-2xl shadow-[0_0_100px_rgba(0,240,255,0.1)] border-cyber-blue/30 relative">
             <button 
               onClick={() => {
                 setSelectedChallenge(null);
@@ -379,15 +391,15 @@ function Challenges() {
                       Too many attempts on this challenge. Please try a little later.
                     </p>
                   )}
-                  <div className="flex space-x-4">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <button onClick={() => {
                       setSelectedChallenge(null);
                       setShowSolvedByList(false);
-                    }} className="flex-1 px-4 py-3 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
+                    }} className="w-full sm:flex-1 px-4 py-3 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
                     <button
                       onClick={submitFlag}
                       disabled={isSubmitting || isSelectedChallengeCoolingDown}
-                      className="cyber-button flex-[2] py-3 text-sm border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="cyber-button w-full sm:flex-[2] py-3 text-sm border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? 'Submitting...' : 'Submit'}
                     </button>

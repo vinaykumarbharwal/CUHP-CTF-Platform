@@ -8,11 +8,11 @@ const Submission = require('../models/Submission');
 const User = require('../models/User');
 
 const INCORRECT_FLAG_LIMIT = 5;
-const INCORRECT_FLAG_WINDOW_MS = 10 * 60 * 1000;
+const INCORRECT_FLAG_WINDOW_MS = 10 * 1000;
 const COOLDOWN_MESSAGE = 'Too many incorrect flags for this challenge. Take a stop and try a little bit later.';
 
 const submitLimiter = rateLimit({
-  windowMs: 60 * 1000,
+  windowMs: 10 * 1000,
   max: 10,
   keyGenerator: (req) => {
     const userKey = req.userId || req.ip;
