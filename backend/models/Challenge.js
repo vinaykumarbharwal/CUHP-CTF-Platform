@@ -23,6 +23,10 @@ const challengeSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  image: {
+    type: String,
+    default: ''
+  },
   flag: {
     type: String,
     required: true,

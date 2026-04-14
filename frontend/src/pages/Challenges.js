@@ -349,9 +349,38 @@ function Challenges() {
               <span className="text-xs font-black text-cyber-blue uppercase tracking-[0.3em] mb-2 block">{selectedChallenge.category}</span>
               <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-4">{selectedChallenge.title}</h2>
               <div className="h-0.5 w-16 bg-cyber-blue mb-6"></div>
-              <p className="text-white/70 font-mono text-sm leading-relaxed mb-6 bg-white/5 p-4 rounded border border-white/5">
-                {selectedChallenge.description}
-              </p>
+
+              {selectedChallenge.image && (
+                <div className="mb-6">
+                  <a
+                    href={selectedChallenge.image}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyber-blue hover:text-cyber-green transition-colors text-[10px] font-black uppercase tracking-[0.2em] break-all"
+                  >
+                    location_finder.jpg
+                  </a>
+                </div>
+              )}
+
+              <div className="text-white/70 font-mono text-sm leading-relaxed mb-6 bg-white/5 p-4 rounded border border-white/5">
+                {selectedChallenge.description.split(/\[(.*?)\]/).map((part, i) => {
+                  if (i % 2 === 1) {
+                    return (
+                      <a
+                        key={i}
+                        href={selectedChallenge.image}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cyber-blue hover:text-cyber-green transition-colors underline"
+                      >
+                        {part}
+                      </a>
+                    );
+                  }
+                  return part;
+                })}
+              </div>
 
               <div className="text-[10px] font-black text-white/40 uppercase tracking-widest bg-black/30 p-2 rounded inline-block">
                 <button
