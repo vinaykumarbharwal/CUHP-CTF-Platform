@@ -5,6 +5,22 @@ import api from '../services/api';
 import { Trophy, Flag, LogOut } from 'lucide-react';
 import useAutoRefresh from '../hooks/useAutoRefresh';
 
+const playWrongAttemptAudio = () => {
+  const wrongAttemptAudio = new Audio('/audio.mp3');
+  wrongAttemptAudio.currentTime = 0;
+  wrongAttemptAudio.play().catch(() => {
+    // Ignore playback errors (e.g., missing file or blocked autoplay).
+  });
+};
+
+const playCorrectFlagAudio = () => {
+  const correctFlagAudio = new Audio('/correct.mp3');
+  correctFlagAudio.currentTime = 0;
+  correctFlagAudio.play().catch(() => {
+    // Ignore playback errors (e.g., missing file or blocked autoplay).
+  });
+};
+
 function Challenges() {
   const [challenges, setChallenges] = useState([]);
   const [selectedChallenge, setSelectedChallenge] = useState(null);
@@ -82,6 +98,7 @@ function Challenges() {
         challengeId,
         flag: trimmedFlag
       });
+      playCorrectFlagAudio();
       toast.success(`Correct! +${response.data.points} points`);
       setChallengeCooldowns((prev) => {
         const next = { ...prev };
@@ -106,6 +123,11 @@ function Challenges() {
         typeof errorData === 'string'
           ? errorData
           : errorData?.error || errorData?.message || 'Incorrect flag';
+
+      if (error?.response?.status === 400) {
+        playWrongAttemptAudio();
+      }
+
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
