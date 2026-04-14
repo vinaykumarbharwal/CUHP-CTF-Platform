@@ -50,7 +50,12 @@ function Challenges() {
       setFlag('');
       refreshPageData();
     } catch (error) {
-      toast.error(error.response?.data?.error || 'Incorrect flag');
+      const errorData = error?.response?.data;
+      const errorMessage =
+        typeof errorData === 'string'
+          ? errorData
+          : errorData?.error || errorData?.message || 'Incorrect flag';
+      toast.error(errorMessage);
     }
   };
 
