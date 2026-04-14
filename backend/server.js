@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
 const { connectDB } = require('./config/database');
 const Challenge = require('./models/Challenge');
-const challengeSeedData = require('./data/challenges');
+// const challengeSeedData = require('./data/challenges');
 
 dotenv.config();
 
