@@ -155,6 +155,24 @@ function Challenges() {
   const isSelectedChallengeCoolingDown =
     !!selectedChallenge?._id && (challengeCooldowns[selectedChallenge._id] || 0) > Date.now();
 
+  const selectedChallengeImageLabel = useMemo(() => {
+    if (!selectedChallenge?.description) {
+      return '';
+    }
+
+    const bracketMatch = selectedChallenge.description.match(/\[.*?:\s*([^\]]+)\]/i);
+    if (bracketMatch?.[1]) {
+      return bracketMatch[1].trim();
+    }
+
+    const fallbackTitle = (selectedChallenge.title || 'challenge_image')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+
+    return `${fallbackTitle || 'challenge_image'}.jpg`;
+  }, [selectedChallenge]);
+
   const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'];
   
   // Separate sample challenge from others
@@ -358,7 +376,7 @@ function Challenges() {
                     rel="noopener noreferrer"
                     className="text-cyber-blue hover:text-cyber-green transition-colors text-[10px] font-black uppercase tracking-[0.2em] break-all"
                   >
-                    location_finder.jpg
+                    {selectedChallengeImageLabel}
                   </a>
                 </div>
               )}
