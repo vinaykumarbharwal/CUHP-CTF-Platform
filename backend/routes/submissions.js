@@ -14,7 +14,17 @@ const COOLDOWN_MESSAGE = 'Too many incorrect flags for this challenge. Take a st
 const submitLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 10,
-  message: 'Too many submission attempts. Please wait.'
+  keyGenerator: (req) => {
+    const userKey = req.userId || req.ip;
+    const challengeKey = req.body?.challengeId || 'unknown-challenge';
+    return `${userKey}:${challengeKey}`;
+  },
+  message: {
+    success: false,
+    error: 'Too many attempts on this challenge. Please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
 });
 
 router.post('/', [auth, submitLimiter], async (req, res) => {
@@ -35,7 +45,7 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
 
     const incorrectWindowStart = new Date(Date.now() - INCORRECT_FLAG_WINDOW_MS);
     const incorrectAttempts = await Submission.countDocuments({
-      teamId: team._id,
+      submittedBy: user._id,
       challengeId: challenge._id,
       isCorrect: false,
       submittedAt: { $gte: incorrectWindowStart }
@@ -43,7 +53,7 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
 
     if (incorrectAttempts >= INCORRECT_FLAG_LIMIT) {
       const oldestAttemptInWindow = await Submission.findOne({
-        teamId: team._id,
+        submittedBy: user._id,
         challengeId: challenge._id,
         isCorrect: false,
         submittedAt: { $gte: incorrectWindowStart }
