@@ -1,24 +1,14 @@
 ﻿const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 30,
-  message: { error: 'Too many auth attempts. Please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false
-});
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 router.post('/register', [
-  authLimiter,
   body('username').isLength({ min: 3 }).trim(),
   body('email').isEmail().trim().toLowerCase(),
   body('password').isLength({ min: 6 })
@@ -55,7 +45,6 @@ router.post('/register', [
 });
 
 router.post('/login', [
-  authLimiter,
   body('email').notEmpty().trim(),
   body('password').notEmpty()
 ], async (req, res) => {

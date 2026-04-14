@@ -2,20 +2,49 @@
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Team = require('../models/Team');
+const Submission = require('../models/Submission');
 
 router.get('/', auth, async (req, res) => {
   try {
-    const teams = await Team.find({})
-      .populate('members', 'username')
-      .select('name totalScore solvedChallenges');
+    const [teams, submissionStats] = await Promise.all([
+      Team.find({})
+        .populate('members', 'username')
+        .select('name'),
+      Submission.aggregate([
+        {
+          $match: {
+            isCorrect: true,
+            teamId: { $ne: null }
+          }
+        },
+        {
+          $group: {
+            _id: '$teamId',
+            totalScore: { $sum: '$points' },
+            solvedCount: { $sum: 1 },
+            earliestSubmission: { $min: '$submittedAt' }
+          }
+        }
+      ])
+    ]);
+
+    const submissionMap = submissionStats.reduce((acc, stat) => {
+      acc[String(stat._id)] = {
+        totalScore: stat.totalScore || 0,
+        solvedCount: stat.solvedCount || 0,
+        earliestSubmission: stat.earliestSubmission
+          ? new Date(stat.earliestSubmission).getTime()
+          : Infinity
+      };
+      return acc;
+    }, {});
 
     const rankedTeams = teams
       .map((team) => ({
         ...team.toObject(),
-        earliestSubmission:
-          team.solvedChallenges.length > 0
-            ? Math.min(...team.solvedChallenges.map((sc) => sc.solvedAt.getTime()))
-            : Infinity
+        totalScore: submissionMap[String(team._id)]?.totalScore || 0,
+        solvedCount: submissionMap[String(team._id)]?.solvedCount || 0,
+        earliestSubmission: submissionMap[String(team._id)]?.earliestSubmission || Infinity
       }))
       .sort((a, b) => {
         if (a.totalScore !== b.totalScore) {
@@ -29,7 +58,7 @@ router.get('/', auth, async (req, res) => {
         name: team.name,
         totalScore: team.totalScore,
         members: team.members,
-        solvedCount: team.solvedChallenges.length
+        solvedCount: team.solvedCount
       }));
 
     return res.json(rankedTeams);
