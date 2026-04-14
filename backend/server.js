@@ -3,6 +3,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { connectDB } = require('./config/database');
 const Challenge = require('./models/Challenge');
+const Team = require('./models/Team');
+const Submission = require('./models/Submission');
 // const challengeSeedData = require('./data/challenges');
 
 dotenv.config();
@@ -33,10 +35,69 @@ app.use('/api/stats', statsRoutes);
 
 const PORT = process.env.PORT || 5001;
 
+async function reconcileTeamStatsFromSubmissions() {
+  // Always normalize persisted team score fields from source-of-truth submissions.
+  const solvedByTeam = await Submission.aggregate([
+    {
+      $match: {
+        isCorrect: true,
+        teamId: { $ne: null },
+        challengeId: { $ne: null }
+      }
+    },
+    {
+      $sort: { submittedAt: 1 }
+    },
+    {
+      $group: {
+        _id: {
+          teamId: '$teamId',
+          challengeId: '$challengeId'
+        },
+        solvedAt: { $first: '$submittedAt' },
+        points: { $first: '$points' }
+      }
+    },
+    {
+      $group: {
+        _id: '$_id.teamId',
+        totalScore: { $sum: '$points' },
+        solvedChallenges: {
+          $push: {
+            challengeId: '$_id.challengeId',
+            solvedAt: '$solvedAt'
+          }
+        }
+      }
+    }
+  ]);
+
+  await Team.updateMany({}, { $set: { totalScore: 0, solvedChallenges: [] } });
+
+  if (solvedByTeam.length > 0) {
+    await Team.bulkWrite(
+      solvedByTeam.map((row) => ({
+        updateOne: {
+          filter: { _id: row._id },
+          update: {
+            $set: {
+              totalScore: row.totalScore || 0,
+              solvedChallenges: row.solvedChallenges || []
+            }
+          }
+        }
+      }))
+    );
+  }
+}
+
 async function startServer() {
   try {
     const { mode } = await connectDB();
     console.log(`Database mode: ${mode}`);
+
+    await reconcileTeamStatsFromSubmissions();
+    console.log('Team scores reconciled from submissions');
 
     const challengeCount = await Challenge.countDocuments();
     if (challengeCount === 0) {

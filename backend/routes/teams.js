@@ -103,6 +103,52 @@ async function attachMemberSubmissionStats(teamDoc) {
     }
   ]);
 
+  const solvedChallenges = await Submission.aggregate([
+    {
+      $match: {
+        teamId: team._id,
+        isCorrect: true,
+        challengeId: { $ne: null }
+      }
+    },
+    {
+      $group: {
+        _id: '$challengeId',
+        solvedAt: { $min: '$submittedAt' }
+      }
+    },
+    {
+      $lookup: {
+        from: 'challenges',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'challenge'
+      }
+    },
+    {
+      $unwind: {
+        path: '$challenge',
+        preserveNullAndEmptyArrays: false
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        challengeId: {
+          _id: '$challenge._id',
+          title: '$challenge.title',
+          category: '$challenge.category',
+          difficulty: '$challenge.difficulty',
+          points: '$challenge.points'
+        },
+        solvedAt: 1
+      }
+    },
+    {
+      $sort: { solvedAt: 1 }
+    }
+  ]);
+
   const statsMap = stats.reduce((acc, item) => {
     acc[String(item._id)] = {
       points: item.points,
@@ -115,6 +161,7 @@ async function attachMemberSubmissionStats(teamDoc) {
 
   const submissionDerivedTotalScore = teamTotals[0]?.totalScoreFromSubmissions || 0;
   team.totalScore = submissionDerivedTotalScore;
+  team.solvedChallenges = solvedChallenges;
 
   team.memberSubmissionStats = (team.members || []).map((member) => {
     const memberId = String(member._id || member);

@@ -3,22 +3,47 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Challenge = require('../models/Challenge');
 const Team = require('../models/Team');
+const Submission = require('../models/Submission');
 
 router.get('/', auth, async (req, res) => {
   try {
-    const [challenges, teams] = await Promise.all([
+    const [challenges, teams, solvedPairs] = await Promise.all([
       Challenge.find({}, '-flag').lean(),
-      Team.find({}, 'name solvedChallenges.challengeId').lean()
+      Team.find({}, 'name').lean(),
+      Submission.aggregate([
+        {
+          $match: {
+            isCorrect: true,
+            teamId: { $ne: null },
+            challengeId: { $ne: null }
+          }
+        },
+        {
+          $group: {
+            _id: {
+              challengeId: '$challengeId',
+              teamId: '$teamId'
+            }
+          }
+        }
+      ])
     ]);
 
-    const solvedByMap = teams.reduce((acc, team) => {
-      (team.solvedChallenges || []).forEach((solved) => {
-        const challengeId = String(solved.challengeId);
-        if (!acc[challengeId]) {
-          acc[challengeId] = [];
-        }
-        acc[challengeId].push(team.name);
-      });
+    const teamNameMap = teams.reduce((acc, team) => {
+      acc[String(team._id)] = team.name;
+      return acc;
+    }, {});
+
+    const solvedByMap = solvedPairs.reduce((acc, pair) => {
+      const challengeId = String(pair._id.challengeId);
+      const teamName = teamNameMap[String(pair._id.teamId)];
+      if (!teamName) {
+        return acc;
+      }
+      if (!acc[challengeId]) {
+        acc[challengeId] = [];
+      }
+      acc[challengeId].push(teamName);
       return acc;
     }, {});
 
