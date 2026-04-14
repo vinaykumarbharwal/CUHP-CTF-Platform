@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const jwtConfig = require('../config/jwt');
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -31,8 +32,8 @@ router.post('/register', [
 
     const token = jwt.sign(
       { userId: user._id, username: user.username },
-      process.env.JWT_SECRET || 'your_secret_key',
-      { expiresIn: '7d' }
+      jwtConfig.secret,
+      { expiresIn: jwtConfig.expiresIn }
     );
 
     return res.status(201).json({
@@ -77,8 +78,8 @@ router.post('/login', [
 
     const token = jwt.sign(
       { userId: user._id, username: user.username },
-      process.env.JWT_SECRET || 'your_secret_key',
-      { expiresIn: '7d' }
+      jwtConfig.secret,
+      { expiresIn: jwtConfig.expiresIn }
     );
 
     return res.json({

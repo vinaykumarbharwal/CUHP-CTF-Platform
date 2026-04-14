@@ -275,9 +275,28 @@ router.post('/join', auth, async (req, res) => {
   }
 });
 
-router.get('/:id', auth, async (req, res) => {
+router.get('/my/team', auth, async (req, res) => {
   try {
-    const team = await Team.findById(req.params.id)
+    const user = await User.findById(req.userId, 'teamId');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    let teamId = user.teamId;
+
+    // Recovery path for legacy/inconsistent data where team membership exists but user.teamId is null.
+    if (!teamId) {
+      const teamByMember = await Team.findOne({ members: user._id }, '_id').lean();
+      if (!teamByMember) {
+        return res.status(404).json({ error: 'You are not in a team' });
+      }
+
+      teamId = teamByMember._id;
+      user.teamId = teamId;
+      await user.save();
+    }
+
+    const team = await Team.findById(teamId)
       .populate('members', 'username email')
       .populate('solvedChallenges.challengeId');
 
@@ -292,16 +311,15 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-router.get('/my/team', auth, async (req, res) => {
+router.get('/:id', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.userId);
-    if (!user.teamId) {
-      return res.status(404).json({ error: 'You are not in a team' });
-    }
-
-    const team = await Team.findById(user.teamId)
+    const team = await Team.findById(req.params.id)
       .populate('members', 'username email')
       .populate('solvedChallenges.challengeId');
+
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
 
     const teamWithStats = await attachMemberSubmissionStats(team);
     return res.json(teamWithStats);

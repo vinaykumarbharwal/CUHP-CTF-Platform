@@ -5,7 +5,7 @@ const { connectDB } = require('./config/database');
 const Challenge = require('./models/Challenge');
 const Team = require('./models/Team');
 const Submission = require('./models/Submission');
-// const challengeSeedData = require('./data/challenges');
+const challengeSeedData = require('./data/challenges');
 
 dotenv.config();
 
