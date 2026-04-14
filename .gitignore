@@ -44,3 +44,6 @@ Thumbs.db
 # App/runtime artifacts
 uploads/
 *.bak
+
+# Challenge data with embedded flags
+backend/data/challenges.js
