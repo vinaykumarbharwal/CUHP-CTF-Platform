@@ -1,37 +1,13 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
+require('dotenv').config();
 const { connectDB } = require('./config/database');
 const Challenge = require('./models/Challenge');
 const Team = require('./models/Team');
 const Submission = require('./models/Submission');
-const challengeSeedData = require('./data/challenges');
+const createApp = require('./app');
+const { ensureAdminUser } = require('./utils/adminBootstrap');
+// const challengeSeedData = require('./data/challenges');
 
-dotenv.config();
-
-const app = express();
-
-// Hosted platforms sit behind reverse proxies; trust the first proxy for correct client IP handling.
-app.set('trust proxy', 1);
-
-app.use(cors());
-app.use(express.json());
-
-const authRoutes = require('./routes/auth');
-const teamRoutes = require('./routes/teams');
-const challengeRoutes = require('./routes/challenges');
-const submissionRoutes = require('./routes/submissions');
-const leaderboardRoutes = require('./routes/leaderboard');
-const graphRoutes = require('./routes/graph');
-const statsRoutes = require('./routes/stats');
-
-app.use('/api/auth', authRoutes);
-app.use('/api/teams', teamRoutes);
-app.use('/api/challenges', challengeRoutes);
-app.use('/api/submit', submissionRoutes);
-app.use('/api/leaderboard', leaderboardRoutes);
-app.use('/api/graph', graphRoutes);
-app.use('/api/stats', statsRoutes);
+const app = createApp();
 
 const PORT = process.env.PORT || 5001;
 
@@ -95,6 +71,8 @@ async function startServer() {
   try {
     const { mode } = await connectDB();
     console.log(`Database mode: ${mode}`);
+
+    await ensureAdminUser();
 
     await reconcileTeamStatsFromSubmissions();
     console.log('Team scores reconciled from submissions');

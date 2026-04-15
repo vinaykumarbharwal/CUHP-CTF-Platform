@@ -31,14 +31,14 @@ router.post('/register', [
     await user.save();
 
     const token = jwt.sign(
-      { userId: user._id, username: user.username },
+      { userId: user._id, username: user.username, role: user.role || 'user' },
       jwtConfig.secret,
       { expiresIn: jwtConfig.expiresIn }
     );
 
     return res.status(201).json({
       token,
-      user: { id: user._id, username: user.username, email: user.email }
+      user: { id: user._id, username: user.username, email: user.email, role: user.role }
     });
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });
@@ -77,14 +77,14 @@ router.post('/login', [
     }
 
     const token = jwt.sign(
-      { userId: user._id, username: user.username },
+      { userId: user._id, username: user.username, role: user.role || 'user' },
       jwtConfig.secret,
       { expiresIn: jwtConfig.expiresIn }
     );
 
     return res.json({
       token,
-      user: { id: user._id, username: user.username, email: user.email, teamId: user.teamId }
+      user: { id: user._id, username: user.username, email: user.email, teamId: user.teamId, role: user.role }
     });
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });

@@ -33,6 +33,9 @@ MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/c
 MONGODB_LOCAL_URI=mongodb://127.0.0.1:27017/cuhp_ctf
 ALLOW_LOCAL_MONGO_FALLBACK=true
 JWT_SECRET=your_super_secret_jwt_key_change_this
+ADMIN_USERNAME=admin
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change_this_admin_password
 PORT=5000
 ```
 
@@ -103,6 +106,9 @@ npm run seed
 - `POST /api/teams/join`
 - `GET /api/teams/my/team`
 - `GET /api/challenges`
+- `POST /api/challenges` (admin only)
+- `PUT /api/challenges/:id` (admin only)
+- `DELETE /api/challenges/:id` (admin only)
 - `POST /api/submit`
 - `GET /api/leaderboard`
 - `GET /api/graph/my-team`

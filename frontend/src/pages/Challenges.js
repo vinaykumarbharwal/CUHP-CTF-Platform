@@ -1,9 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import Layout from '../components/Layout';
 import api from '../services/api';
-import { Trophy, Flag, LogOut } from 'lucide-react';
+import { Trophy, LogOut } from 'lucide-react';
 import useAutoRefresh from '../hooks/useAutoRefresh';
+import { useAuth } from '../contexts/AuthContext';
+import {
+  getChallengesReleaseDate,
+  getTimeUntilChallengesUnlock,
+  hasChallengesUnlocked
+} from '../utils/constants';
 
 const playWrongAttemptAudio = () => {
   const wrongAttemptAudio = new Audio('/audio.mp3');
@@ -22,6 +28,7 @@ const playCorrectFlagAudio = () => {
 };
 
 function Challenges() {
+  const { user } = useAuth();
   const [challenges, setChallenges] = useState([]);
   const [selectedChallenge, setSelectedChallenge] = useState(null);
   const [flag, setFlag] = useState('');
@@ -32,8 +39,31 @@ function Challenges() {
   const [solveFilter, setSolveFilter] = useState('Unsolved');
   const [showSolvedByList, setShowSolvedByList] = useState(false);
   const [team, setTeam] = useState(null);
+  const [nowMs, setNowMs] = useState(Date.now());
+  const [releaseMessage, setReleaseMessage] = useState('Challenges are not visible yet.');
+  const isAdmin = user?.role === 'admin';
+
+  const challengesUnlocked = hasChallengesUnlocked(nowMs) || isAdmin;
+  const countdown = getTimeUntilChallengesUnlock(nowMs);
+  const releaseDateText = getChallengesReleaseDate().toLocaleString('en-IN', {
+    dateStyle: 'long',
+    timeStyle: 'short',
+    timeZone: 'Asia/Kolkata'
+  });
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   const fetchChallenges = async () => {
+    if (!challengesUnlocked) {
+      setChallenges([]);
+      return;
+    }
+
     if (challengeFetchBlockedUntil > Date.now()) {
       return;
     }
@@ -41,7 +71,19 @@ function Challenges() {
     try {
       const response = await api.get('/challenges');
       setChallenges(response.data);
+      if (releaseMessage !== 'Challenges are not visible yet.') {
+        setReleaseMessage('Challenges are not visible yet.');
+      }
     } catch (error) {
+      if (error?.response?.status === 403) {
+        const apiMessage = error?.response?.data?.error;
+        if (apiMessage) {
+          setReleaseMessage(apiMessage);
+        }
+        setChallenges([]);
+        return;
+      }
+
       const retryAfterHeader = Number(error?.response?.headers?.['retry-after'] || 0);
       const retryAfterSeconds = Number(error?.response?.data?.retryAfterSeconds || 0);
       const effectiveRetry = Math.max(retryAfterHeader, retryAfterSeconds);
@@ -68,7 +110,7 @@ function Challenges() {
   };
 
   const refreshPageData = async () => {
-    await Promise.all([fetchChallenges(), fetchTeam()]);
+    await Promise.all([fetchTeam(), challengesUnlocked ? fetchChallenges() : Promise.resolve()]);
   };
 
   useAutoRefresh(refreshPageData, { intervalMs: 30000, runOnFocus: false });
@@ -217,7 +259,7 @@ function Challenges() {
         </div>
 
         {/* Sample Challenge - Always Shown First */}
-        {sampleChallenge && (
+        {challengesUnlocked && sampleChallenge && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
             <div
               key={sampleChallenge._id}
@@ -254,99 +296,125 @@ function Challenges() {
           </div>
         )}
 
-        {/* Categories */}
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 mb-6 pb-1">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategory(cat)}
-              className={`w-full sm:w-auto px-3 sm:px-6 py-2 rounded font-black uppercase tracking-widest text-[10px] sm:text-xs transition-all duration-300 border-2 ${
-                category === cat 
-                  ? 'bg-cyber-blue border-cyber-blue text-black shadow-[0_0_20px_rgba(0,240,255,0.4)]' 
-                  : 'border-white/10 text-white/40 hover:border-white/30 hover:text-white'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Solve Status Filter */}
-        <div className="grid grid-cols-2 sm:flex gap-3 mb-10">
-          {['Solved', 'Unsolved'].map((status) => (
-            <button
-              key={status}
-              onClick={() => setSolveFilter(status)}
-              className={`w-full sm:w-auto px-3 sm:px-6 py-2 rounded font-black uppercase tracking-widest text-[10px] sm:text-xs transition-all duration-300 border-2 ${
-                solveFilter === status
-                  ? 'bg-cyber-green border-cyber-green text-black shadow-[0_0_20px_rgba(0,255,65,0.35)]'
-                  : 'border-cyber-green/30 text-cyber-green/70 hover:border-cyber-green hover:text-cyber-green'
-              }`}
-            >
-              {status}
-            </button>
-          ))}
-        </div>
-
-        {/* Challenges Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {finalChallenges.map((challenge) => (
-            <div
-              key={challenge._id}
-              className={`cyber-card p-6 cursor-pointer group flex flex-col justify-between ${
-                isSolved(challenge._id)
-                  ? 'bg-cyber-green/15 border-cyber-green shadow-[0_0_24px_rgba(0,255,65,0.25)]'
-                  : 'border-cyber-blue/20'
-              }`}
-              onClick={() => {
-                setSelectedChallenge(challenge);
-                setShowSolvedByList(false);
-              }}
-            >
-              <div>
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{challenge.category}</span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${
-                    challenge.difficulty === 'Easy' ? 'text-cyber-green border-cyber-green/30 bg-cyber-green/5' :
-                    challenge.difficulty === 'Medium' ? 'text-yellow-400 border-yellow-400/30 bg-yellow-400/5' :
-                    challenge.difficulty === 'Hard' ? 'text-orange-500 border-orange-500/30 bg-orange-500/5' :
-                    'text-red-500 border-red-500/30 bg-red-500/5'
-                  }`}>
-                    {challenge.difficulty}
-                  </span>
-                </div>
-                <h3 className={`text-xl font-black uppercase tracking-tight mb-2 transition-colors ${
-                  isSolved(challenge._id)
-                    ? 'text-cyber-green group-hover:text-cyber-green'
-                    : 'text-white group-hover:text-cyber-blue'
-                }`}>
-                  {challenge.title}
-                </h3>
-              </div>
-              
-              <div className="mt-6 flex items-end justify-between">
-                <div>
-                   <p className={`text-2xl font-black leading-none ${
-                     isSolved(challenge._id) ? 'text-cyber-green' : 'text-cyber-blue'
-                   }`}>{challenge.points}</p>
-                   <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Points</p>
-                </div>
-                <div className="text-right">
-                  {isSolved(challenge._id) ? (
-                    <div className="flex items-center text-cyber-green text-[10px] font-black uppercase tracking-widest">
-                      <div className="w-1.5 h-1.5 bg-cyber-green rounded-full mr-2 animate-pulse"></div>
-                      Solved
-                    </div>
-                  ) : (
-                    <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">
-                       Solves: {challenge.solvedCount || 0}
-                    </div>
-                  )}
-                </div>
-              </div>
+        {!challengesUnlocked ? (
+          <div className="cyber-card p-8 border-cyber-blue/30 max-w-3xl mx-auto text-center">
+            <p className="text-cyber-blue text-[10px] font-black uppercase tracking-[0.25em] mb-4">
+              Challenges Locked
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+              <CountdownBox label="Days" value={countdown.days} />
+              <CountdownBox label="Hours" value={countdown.hours} />
+              <CountdownBox label="Minutes" value={countdown.minutes} />
+              <CountdownBox label="Seconds" value={countdown.seconds} />
             </div>
-          ))}
-        </div>
+            <p className="text-white/70 font-mono text-xs uppercase tracking-wide mb-2">
+              {releaseMessage}
+            </p>
+            <p className="text-white/50 font-mono text-xs uppercase tracking-wide">
+              {isAdmin ? (
+                <span className="text-cyber-green font-black">Admin preview mode enabled. You can view and test challenges before release.</span>
+              ) : (
+                <>Challenge access starts on <span className="text-cyber-green font-black">{releaseDateText}</span>.</>
+              )}
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Categories */}
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 mb-6 pb-1">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  className={`w-full sm:w-auto px-3 sm:px-6 py-2 rounded font-black uppercase tracking-widest text-[10px] sm:text-xs transition-all duration-300 border-2 ${
+                    category === cat 
+                      ? 'bg-cyber-blue border-cyber-blue text-black shadow-[0_0_20px_rgba(0,240,255,0.4)]' 
+                      : 'border-white/10 text-white/40 hover:border-white/30 hover:text-white'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Solve Status Filter */}
+            <div className="grid grid-cols-2 sm:flex gap-3 mb-10">
+              {['Solved', 'Unsolved'].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setSolveFilter(status)}
+                  className={`w-full sm:w-auto px-3 sm:px-6 py-2 rounded font-black uppercase tracking-widest text-[10px] sm:text-xs transition-all duration-300 border-2 ${
+                    solveFilter === status
+                      ? 'bg-cyber-green border-cyber-green text-black shadow-[0_0_20px_rgba(0,255,65,0.35)]'
+                      : 'border-cyber-green/30 text-cyber-green/70 hover:border-cyber-green hover:text-cyber-green'
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+
+            {/* Challenges Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {finalChallenges.map((challenge) => (
+                <div
+                  key={challenge._id}
+                  className={`cyber-card p-6 cursor-pointer group flex flex-col justify-between ${
+                    isSolved(challenge._id)
+                      ? 'bg-cyber-green/15 border-cyber-green shadow-[0_0_24px_rgba(0,255,65,0.25)]'
+                      : 'border-cyber-blue/20'
+                  }`}
+                  onClick={() => {
+                    setSelectedChallenge(challenge);
+                    setShowSolvedByList(false);
+                  }}
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-4">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{challenge.category}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${
+                        challenge.difficulty === 'Easy' ? 'text-cyber-green border-cyber-green/30 bg-cyber-green/5' :
+                        challenge.difficulty === 'Medium' ? 'text-yellow-400 border-yellow-400/30 bg-yellow-400/5' :
+                        challenge.difficulty === 'Hard' ? 'text-orange-500 border-orange-500/30 bg-orange-500/5' :
+                        'text-red-500 border-red-500/30 bg-red-500/5'
+                      }`}>
+                        {challenge.difficulty}
+                      </span>
+                    </div>
+                    <h3 className={`text-xl font-black uppercase tracking-tight mb-2 transition-colors ${
+                      isSolved(challenge._id)
+                        ? 'text-cyber-green group-hover:text-cyber-green'
+                        : 'text-white group-hover:text-cyber-blue'
+                    }`}>
+                      {challenge.title}
+                    </h3>
+                  </div>
+                  
+                  <div className="mt-6 flex items-end justify-between">
+                    <div>
+                       <p className={`text-2xl font-black leading-none ${
+                         isSolved(challenge._id) ? 'text-cyber-green' : 'text-cyber-blue'
+                       }`}>{challenge.points}</p>
+                       <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Points</p>
+                    </div>
+                    <div className="text-right">
+                      {isSolved(challenge._id) ? (
+                        <div className="flex items-center text-cyber-green text-[10px] font-black uppercase tracking-widest">
+                          <div className="w-1.5 h-1.5 bg-cyber-green rounded-full mr-2 animate-pulse"></div>
+                          Solved
+                        </div>
+                      ) : (
+                        <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                           Solves: {challenge.solvedCount || 0}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Challenge Modal */}
@@ -475,5 +543,12 @@ function Challenges() {
     </Layout>
   );
 }
+
+const CountdownBox = ({ label, value }) => (
+  <div className="rounded-lg border border-cyber-blue/20 bg-black/30 px-4 py-3 text-center">
+    <p className="text-2xl font-black text-cyber-green font-bytebounce">{String(value).padStart(2, '0')}</p>
+    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{label}</p>
+  </div>
+);
 
 export default Challenges;

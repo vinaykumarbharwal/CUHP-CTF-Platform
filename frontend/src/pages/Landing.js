@@ -1,15 +1,39 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy, Globe, Shield, Terminal, Zap, ChevronRight, Activity, Cpu } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import bgImage from '../assets/images/bg.png';
 import useAutoRefresh from '../hooks/useAutoRefresh';
+import {
+  CHALLENGES_RELEASE_AT_ISO,
+  getChallengesReleaseDate,
+  getTimeUntilChallengesUnlock,
+  hasChallengesUnlocked
+} from '../utils/constants';
 
 const Landing = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ users: 0, teams: 0, challenges: 0, categories: [] });
   const [loading, setLoading] = useState(true);
+  const [nowMs, setNowMs] = useState(Date.now());
+  const isAdmin = user?.role === 'admin';
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const challengesUnlocked = hasChallengesUnlocked(nowMs) || isAdmin;
+  const countdown = getTimeUntilChallengesUnlock(nowMs);
+  const releaseDateText = getChallengesReleaseDate().toLocaleString('en-IN', {
+    dateStyle: 'long',
+    timeStyle: 'short',
+    timeZone: 'Asia/Kolkata'
+  });
 
   const fetchStats = async () => {
     try {
@@ -94,6 +118,23 @@ const Landing = () => {
             crypto, binary, forensics, and osint. Build skills, solve challenges,
             and climb the live leaderboard with your team.
           </p>
+          {!challengesUnlocked && (
+            <div className="max-w-3xl mx-auto mb-10 cyber-glass border border-cyber-blue/30 rounded-xl p-6">
+              <p className="text-cyber-blue text-[10px] font-black uppercase tracking-[0.25em] mb-3">
+                Challenge Unlock Countdown
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                <CountdownBox label="Days" value={countdown.days} />
+                <CountdownBox label="Hours" value={countdown.hours} />
+                <CountdownBox label="Minutes" value={countdown.minutes} />
+                <CountdownBox label="Seconds" value={countdown.seconds} />
+              </div>
+              <p className="text-white/60 font-mono text-xs uppercase tracking-wide">
+                Challenges unlock on <span className="text-cyber-green font-black">{releaseDateText}</span>.
+                Registration and team creation are open now.
+              </p>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
             <Link to={user ? "/dashboard" : "/login"} className="cyber-button px-10 py-4 text-sm w-full sm:w-72 flex items-center justify-center">
               {user ? "Enter Dashboard" : "Get Started"} <ChevronRight className="h-4 w-4 ml-2" />
@@ -103,6 +144,18 @@ const Landing = () => {
                 System Ranking <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </span>
             </Link>
+            {user && (
+              <Link
+                to="/challenges"
+                className={`cyber-button px-10 py-4 text-sm w-full sm:w-72 overflow-hidden group ${challengesUnlocked ? '' : 'border-white/10 text-white/40 pointer-events-none opacity-50'}`}
+                aria-disabled={!challengesUnlocked}
+                title={challengesUnlocked ? 'Open challenges' : `Challenges unlock at ${CHALLENGES_RELEASE_AT_ISO}`}
+              >
+                <span className="relative z-10 flex items-center justify-center">
+                  Challenges {challengesUnlocked ? <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" /> : '(Locked)'}
+                </span>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -158,7 +211,7 @@ const Landing = () => {
             </p>
           </div>
           <div className="text-[10px] font-mono uppercase tracking-widest">
-            Challenges: Live <br />
+            Challenges: {challengesUnlocked ? 'Live' : 'Locked'} <br />
             Mode: Team Competition
           </div>
           <div className="text-[10px] font-mono uppercase">
@@ -188,6 +241,13 @@ const StatBox = ({ label, value, color }) => (
       {value}
     </div>
     <div className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">{label}</div>
+  </div>
+);
+
+const CountdownBox = ({ label, value }) => (
+  <div className="rounded-lg border border-cyber-blue/20 bg-black/30 px-4 py-3 text-center">
+    <p className="text-2xl font-black text-cyber-green font-bytebounce">{String(value).padStart(2, '0')}</p>
+    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{label}</p>
   </div>
 );
 

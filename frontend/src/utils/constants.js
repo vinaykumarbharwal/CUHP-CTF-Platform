@@ -52,3 +52,25 @@ export const API_ENDPOINTS = {
     TEAM: '/graph/team/:teamId'
   }
 };
+
+export const CHALLENGES_RELEASE_AT_ISO = '2026-05-08T10:00:00+05:30';
+
+export const getChallengesReleaseDate = () => new Date(CHALLENGES_RELEASE_AT_ISO);
+
+export const hasChallengesUnlocked = (now = Date.now()) =>
+  now >= getChallengesReleaseDate().getTime();
+
+export const getTimeUntilChallengesUnlock = (now = Date.now()) => {
+  const diffMs = getChallengesReleaseDate().getTime() - now;
+  if (diffMs <= 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0, totalMs: 0 };
+  }
+
+  const totalSeconds = Math.floor(diffMs / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return { days, hours, minutes, seconds, totalMs: diffMs };
+};

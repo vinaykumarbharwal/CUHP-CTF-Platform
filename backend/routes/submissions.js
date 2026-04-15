@@ -6,6 +6,7 @@ const Challenge = require('../models/Challenge');
 const Team = require('../models/Team');
 const Submission = require('../models/Submission');
 const User = require('../models/User');
+const { hasChallengesUnlocked, getSecondsUntilChallengesUnlock } = require('../utils/ctfSchedule');
 
 const INCORRECT_FLAG_LIMIT = 5;
 const INCORRECT_FLAG_WINDOW_MS = 10 * 1000;
@@ -29,6 +30,15 @@ const submitLimiter = rateLimit({
 
 router.post('/', [auth, submitLimiter], async (req, res) => {
   try {
+    if (!hasChallengesUnlocked() && req.userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Challenge submissions open on 08 May 2026 at 10:00 AM IST',
+        releaseAt: '2026-05-08T10:00:00+05:30',
+        retryAfterSeconds: getSecondsUntilChallengesUnlock()
+      });
+    }
+
     const { challengeId, flag } = req.body;
 
     const user = await User.findById(req.userId);
