@@ -45,5 +45,7 @@ Thumbs.db
 uploads/
 *.bak
 
+
 # Challenge data with embedded flags
 backend/data/challenges.js
+backend/updateFinalDestinationChallenge.js
