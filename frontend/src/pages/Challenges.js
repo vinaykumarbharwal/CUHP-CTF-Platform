@@ -215,6 +215,14 @@ function Challenges() {
     return `${fallbackTitle || 'challenge_image'}.jpg`;
   }, [selectedChallenge]);
 
+  const hasExplicitImageLabel = useMemo(() => {
+    if (!selectedChallenge?.description) {
+      return false;
+    }
+
+    return /\[.*?:\s*[^\]]+\]/i.test(selectedChallenge.description);
+  }, [selectedChallenge]);
+
   const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'];
   
   // Separate sample challenge from others
@@ -436,7 +444,7 @@ function Challenges() {
               <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-4">{selectedChallenge.title}</h2>
               <div className="h-0.5 w-16 bg-cyber-blue mb-6"></div>
 
-              {selectedChallenge.image && (
+              {selectedChallenge.image && hasExplicitImageLabel && (
                 <div className="mb-6">
                   <a
                     href={selectedChallenge.image}
