@@ -97,9 +97,11 @@ function Register() {
                 <input
                   type="email"
                   required
+                  pattern="^[^\\s@]+@gmail\\.com$"
+                  title="Use a valid @gmail.com address"
                   autoComplete="off"
                   className="cyber-input w-full font-mono text-sm"
-                  placeholder="Email address"
+                  placeholder="name@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />

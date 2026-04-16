@@ -8,10 +8,8 @@ const emailService = require('../utils/emailService');
 
 const router = express.Router();
 const EMAIL_VERIFICATION_WINDOW_MS = 15 * 60 * 1000;
-
-function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+const GMAIL_EMAIL_REGEX = /^[^\s@]+@gmail\.com$/i;
+const GMAIL_DOMAIN_ERROR = 'Only @gmail.com email addresses are allowed.';
 
 function hashVerificationToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -39,7 +37,13 @@ function buildVerificationLink(token) {
 
 router.post('/register', [
   body('username').isLength({ min: 3 }).trim(),
-  body('email').isEmail().trim().toLowerCase(),
+  body('email')
+    .trim()
+    .toLowerCase()
+    .isEmail()
+    .withMessage('Please provide a valid email address.')
+    .matches(GMAIL_EMAIL_REGEX)
+    .withMessage(GMAIL_DOMAIN_ERROR),
   body('password').isLength({ min: 6 })
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -125,7 +129,13 @@ router.get('/verify-email', async (req, res) => {
 });
 
 router.post('/login', [
-  body('email').notEmpty().trim(),
+  body('email')
+    .trim()
+    .toLowerCase()
+    .isEmail()
+    .withMessage('Please provide a valid email address.')
+    .matches(GMAIL_EMAIL_REGEX)
+    .withMessage(GMAIL_DOMAIN_ERROR),
   body('password').notEmpty()
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -135,16 +145,10 @@ router.post('/login', [
 
   try {
     const { email, password } = req.body;
-    const identifier = String(email || '').trim();
-    const identifierRegex = new RegExp(`^${escapeRegex(identifier)}$`, 'i');
+    const normalizedEmail = String(email || '').trim().toLowerCase();
 
     const user = await User.findOne({
-      $or: [
-        { email: identifier },
-        { username: identifier },
-        { email: identifierRegex },
-        { username: identifierRegex }
-      ]
+      email: normalizedEmail
     });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });

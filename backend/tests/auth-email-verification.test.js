@@ -69,7 +69,7 @@ test('register creates unverified account and sends verification email', async (
     const response = await requestJson(server, 'POST', '/api/auth/register', {
       body: {
         username: 'alice',
-        email: 'alice@example.com',
+        email: 'alice@gmail.com',
         password: 'secret123'
       }
     });
@@ -80,7 +80,7 @@ test('register creates unverified account and sends verification email', async (
     assert.equal(typeof savedUser.emailVerificationToken, 'string');
     assert.equal(savedUser.emailVerificationToken.length > 20, true);
     assert.equal(savedUser.emailVerificationExpires instanceof Date, true);
-    assert.equal(sentEmailPayload.toEmail, 'alice@example.com');
+    assert.equal(sentEmailPayload.toEmail, 'alice@gmail.com');
     assert.equal(sentEmailPayload.username, 'alice');
     assert.equal(sentEmailPayload.verificationLink.startsWith('http://localhost:3000/verify-email?token='), true);
   } finally {
@@ -97,7 +97,7 @@ test('login rejects users with unverified emails', async () => {
   User.findOne = async () => ({
     _id: '507f1f77bcf86cd799439011',
     username: 'alice',
-    email: 'alice@example.com',
+    email: 'alice@gmail.com',
     role: 'user',
     isEmailVerified: false,
     comparePassword: async () => true
@@ -109,7 +109,7 @@ test('login rejects users with unverified emails', async () => {
   try {
     const response = await requestJson(server, 'POST', '/api/auth/login', {
       body: {
-        email: 'alice@example.com',
+        email: 'alice@gmail.com',
         password: 'secret123'
       }
     });
@@ -128,7 +128,7 @@ test('login allows users without explicit verification flag (legacy accounts)', 
   User.findOne = async () => ({
     _id: '507f1f77bcf86cd799439022',
     username: 'legacy',
-    email: 'legacy@example.com',
+    email: 'legacy@gmail.com',
     role: 'user',
     comparePassword: async () => true
   });
@@ -139,7 +139,7 @@ test('login allows users without explicit verification flag (legacy accounts)', 
   try {
     const response = await requestJson(server, 'POST', '/api/auth/login', {
       body: {
-        email: 'legacy@example.com',
+        email: 'legacy@gmail.com',
         password: 'secret123'
       }
     });
@@ -149,6 +149,45 @@ test('login allows users without explicit verification flag (legacy accounts)', 
     assert.equal(response.body.user.username, 'legacy');
   } finally {
     User.findOne = originalFindOne;
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test('register rejects non-gmail email addresses', async () => {
+  const app = createApp();
+  const server = app.listen(0);
+
+  try {
+    const response = await requestJson(server, 'POST', '/api/auth/register', {
+      body: {
+        username: 'bob',
+        email: 'bob@yahoo.com',
+        password: 'secret123'
+      }
+    });
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.errors[0].msg, 'Only @gmail.com email addresses are allowed.');
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test('login rejects non-gmail email addresses', async () => {
+  const app = createApp();
+  const server = app.listen(0);
+
+  try {
+    const response = await requestJson(server, 'POST', '/api/auth/login', {
+      body: {
+        email: 'bob@yahoo.com',
+        password: 'secret123'
+      }
+    });
+
+    assert.equal(response.status, 400);
+    assert.equal(response.body.errors[0].msg, 'Only @gmail.com email addresses are allowed.');
+  } finally {
     await new Promise((resolve) => server.close(resolve));
   }
 });

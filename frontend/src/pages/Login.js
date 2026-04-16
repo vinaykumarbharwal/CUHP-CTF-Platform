@@ -66,20 +66,22 @@ function Login() {
               <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-2 ml-1">
                 Email address
               </label>
-              <input
-                type="email"
-                name="login_identifier"
-                required
-                readOnly={emailLocked}
-                onFocus={() => setEmailLocked(false)}
-                autoComplete="off"
-                autoCapitalize="none"
-                spellCheck={false}
-                className="cyber-input w-full font-mono text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+                <input
+                  type="email"
+                  name="login_identifier"
+                  required
+                  pattern="^[^\\s@]+@gmail\\.com$"
+                  title="Use a valid @gmail.com address"
+                  readOnly={emailLocked}
+                  onFocus={() => setEmailLocked(false)}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  className="cyber-input w-full font-mono text-sm"
+                  placeholder="name@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
             </div>
             <div>
               <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-2 ml-1">
