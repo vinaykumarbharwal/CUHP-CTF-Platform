@@ -289,12 +289,12 @@ function Challenges() {
       return bracketMatch[1].trim();
     }
 
-    const fallbackTitle = (selectedChallenge.title || 'challenge_image')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '');
+    const directLabelMatch = selectedChallenge.description.match(/\[([^\]]+)\]/);
+    if (directLabelMatch?.[1]) {
+      return directLabelMatch[1].trim();
+    }
 
-    return `${fallbackTitle || 'challenge_image'}.jpg`;
+    return 'Attachment';
   }, [selectedChallenge]);
 
   const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'];
