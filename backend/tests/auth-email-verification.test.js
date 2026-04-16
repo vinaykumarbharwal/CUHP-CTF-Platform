@@ -153,45 +153,6 @@ test('login allows users without explicit verification flag (legacy accounts)', 
   }
 });
 
-test('register rejects non-gmail email addresses', async () => {
-  const app = createApp();
-  const server = app.listen(0);
-
-  try {
-    const response = await requestJson(server, 'POST', '/api/auth/register', {
-      body: {
-        username: 'bob',
-        email: 'bob@yahoo.com',
-        password: 'secret123'
-      }
-    });
-
-    assert.equal(response.status, 400);
-    assert.equal(response.body.errors[0].msg, 'Only @gmail.com email addresses are allowed.');
-  } finally {
-    await new Promise((resolve) => server.close(resolve));
-  }
-});
-
-test('login rejects non-gmail email addresses', async () => {
-  const app = createApp();
-  const server = app.listen(0);
-
-  try {
-    const response = await requestJson(server, 'POST', '/api/auth/login', {
-      body: {
-        email: 'bob@yahoo.com',
-        password: 'secret123'
-      }
-    });
-
-    assert.equal(response.status, 400);
-    assert.equal(response.body.errors[0].msg, 'Only @gmail.com email addresses are allowed.');
-  } finally {
-    await new Promise((resolve) => server.close(resolve));
-  }
-});
-
 test('verify-email marks account as verified', async () => {
   const originalFindOne = User.findOne;
 

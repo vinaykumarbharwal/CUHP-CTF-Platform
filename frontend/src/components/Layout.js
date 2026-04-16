@@ -7,7 +7,8 @@ import { hasChallengesUnlocked } from '../utils/constants';
 function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const showRegisteredTeamsLabel = !hasChallengesUnlocked();
+  const showRegisteredTeamsLabel = !hasChallengesUnlocked() && user?.role !== 'admin';
+  const canViewLeaderboard = hasChallengesUnlocked() || user?.role === 'admin';
 
   const handleLogout = () => {
     logout();
@@ -35,9 +36,11 @@ function Layout({ children }) {
                 <Link to="/challenges" className="inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-widest text-white/70 hover:text-cyber-green transition-colors border-b-2 border-transparent hover:border-cyber-green">
                   <Flag className="h-4 w-4 mr-2" />Challenges
                 </Link>
-                <Link to="/leaderboard" className="inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-widest text-white/70 hover:text-cyber-green transition-colors border-b-2 border-transparent hover:border-cyber-green">
-                  <BarChart3 className="h-4 w-4 mr-2" />{showRegisteredTeamsLabel ? 'Registered Teams' : 'Leaderboard'}
-                </Link>
+                {canViewLeaderboard && (
+                  <Link to="/leaderboard" className="inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-widest text-white/70 hover:text-cyber-green transition-colors border-b-2 border-transparent hover:border-cyber-green">
+                    <BarChart3 className="h-4 w-4 mr-2" />{showRegisteredTeamsLabel ? 'Registered Teams' : 'Leaderboard'}
+                  </Link>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-6 shrink-0">
@@ -62,9 +65,11 @@ function Layout({ children }) {
               <Link to="/challenges" className="inline-flex justify-center items-center py-2 border border-white/10 rounded text-[10px] font-black uppercase tracking-wider text-white/70 hover:text-cyber-green hover:border-cyber-green/40 transition-colors">
                 Challenges
               </Link>
-              <Link to="/leaderboard" className="inline-flex justify-center items-center py-2 border border-white/10 rounded text-[10px] font-black uppercase tracking-wider text-white/70 hover:text-cyber-green hover:border-cyber-green/40 transition-colors">
-                {showRegisteredTeamsLabel ? 'Teams' : 'Leaderboard'}
-              </Link>
+              {canViewLeaderboard && (
+                <Link to="/leaderboard" className="inline-flex justify-center items-center py-2 border border-white/10 rounded text-[10px] font-black uppercase tracking-wider text-white/70 hover:text-cyber-green hover:border-cyber-green/40 transition-colors">
+                  {showRegisteredTeamsLabel ? 'Teams' : 'Leaderboard'}
+                </Link>
+              )}
             </div>
           </div>
         </div>

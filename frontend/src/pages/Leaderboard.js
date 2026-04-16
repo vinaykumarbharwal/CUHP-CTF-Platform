@@ -17,11 +17,19 @@ function Leaderboard() {
   const [expandedTeamId, setExpandedTeamId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const showRegisteredTeamsView = !hasChallengesUnlocked();
+  const challengesUnlocked = hasChallengesUnlocked();
+  const isAdmin = user?.role === 'admin';
+  const showRegisteredTeamsView = !challengesUnlocked && !isAdmin;
+  const isLockedForNonAdmin = !challengesUnlocked && !isAdmin;
   const isLive = Date.now() < COMPETITION_END_TIME;
 
   async function fetchLeaderboard() {
     try {
+      if (isLockedForNonAdmin) {
+        setLoading(false);
+        return;
+      }
+
       if (showRegisteredTeamsView) {
         const leaderboardResponse = await api.get('/leaderboard');
         const registeredTeams = Array.isArray(leaderboardResponse.data)
@@ -46,7 +54,7 @@ function Leaderboard() {
     }
   }
 
-  useAutoRefresh(fetchLeaderboard, { intervalMs: 30000, enabled: showRegisteredTeamsView || isLive || loading });
+  useAutoRefresh(fetchLeaderboard, { intervalMs: 30000, enabled: !isLockedForNonAdmin && (showRegisteredTeamsView || isLive || loading) });
 
   const getRankIcon = (rank) => {
     switch (rank) {
@@ -56,6 +64,26 @@ function Leaderboard() {
       default: return <span className="text-white/50 font-black font-mono">{rank}</span>;
     }
   };
+
+  if (isLockedForNonAdmin) {
+    return (
+      <Layout>
+        <div className="py-8">
+          <div className="cyber-card p-8 max-w-2xl">
+            <p className="text-red-400 text-[10px] font-black uppercase tracking-[0.25em] mb-4">
+              Access Restricted
+            </p>
+            <h1 className="text-3xl font-black text-white tracking-tighter uppercase italic mb-3">
+              Leaderboard Locked
+            </h1>
+            <p className="text-white/70 font-mono text-sm">
+              Only admins can view the leaderboard before the challenge start date.
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   if (loading) {
     return (

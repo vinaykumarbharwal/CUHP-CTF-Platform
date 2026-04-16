@@ -12,6 +12,7 @@ CUHP-CTF-Platform
 - Challenge browsing by category and difficulty
 - Flag submission with rate limiting
 - Live leaderboard with tie-breaking
+- Leaderboard visibility lock (admin-only before challenge release)
 - Team score progression graph over time
 - Click to expand team rows and view member names on the leaderboard
 - Team progress insights with score breakdown and recent solves

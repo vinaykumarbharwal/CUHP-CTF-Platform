@@ -70,15 +70,13 @@ function Login() {
                   type="email"
                   name="login_identifier"
                   required
-                  pattern="^[^\\s@]+@gmail\\.com$"
-                  title="Use a valid @gmail.com address"
                   readOnly={emailLocked}
                   onFocus={() => setEmailLocked(false)}
                   autoComplete="off"
                   autoCapitalize="none"
                   spellCheck={false}
                   className="cyber-input w-full font-mono text-sm"
-                  placeholder="name@gmail.com"
+                  placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />

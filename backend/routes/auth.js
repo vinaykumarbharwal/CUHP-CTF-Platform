@@ -8,8 +8,6 @@ const emailService = require('../utils/emailService');
 
 const router = express.Router();
 const EMAIL_VERIFICATION_WINDOW_MS = 15 * 60 * 1000;
-const GMAIL_EMAIL_REGEX = /^[^\s@]+@gmail\.com$/i;
-const GMAIL_DOMAIN_ERROR = 'Only @gmail.com email addresses are allowed.';
 
 function hashVerificationToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -41,9 +39,7 @@ router.post('/register', [
     .trim()
     .toLowerCase()
     .isEmail()
-    .withMessage('Please provide a valid email address.')
-    .matches(GMAIL_EMAIL_REGEX)
-    .withMessage(GMAIL_DOMAIN_ERROR),
+    .withMessage('Please provide a valid email address.'),
   body('password').isLength({ min: 6 })
 ], async (req, res) => {
   const errors = validationResult(req);
@@ -133,9 +129,7 @@ router.post('/login', [
     .trim()
     .toLowerCase()
     .isEmail()
-    .withMessage('Please provide a valid email address.')
-    .matches(GMAIL_EMAIL_REGEX)
-    .withMessage(GMAIL_DOMAIN_ERROR),
+    .withMessage('Please provide a valid email address.'),
   body('password').notEmpty()
 ], async (req, res) => {
   const errors = validationResult(req);

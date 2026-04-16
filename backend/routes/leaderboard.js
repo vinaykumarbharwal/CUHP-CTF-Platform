@@ -3,9 +3,18 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const Team = require('../models/Team');
 const Submission = require('../models/Submission');
+const { hasChallengesUnlocked, getSecondsUntilChallengesUnlock } = require('../utils/ctfSchedule');
 
 router.get('/', auth, async (req, res) => {
   try {
+    if (!hasChallengesUnlocked() && req.userRole !== 'admin') {
+      return res.status(403).json({
+        error: 'Leaderboard will be visible on 08 May 2026 at 10:00 AM IST',
+        releaseAt: '2026-05-08T10:00:00+05:30',
+        retryAfterSeconds: getSecondsUntilChallengesUnlock()
+      });
+    }
+
     const [teams, submissionStats] = await Promise.all([
       Team.find({})
         .populate('members', 'username')
