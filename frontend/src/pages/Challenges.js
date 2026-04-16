@@ -458,17 +458,21 @@ function Challenges() {
               )}
 
               <div className="text-white/70 font-mono text-sm leading-relaxed mb-6 bg-white/5 p-4 rounded border border-white/5">
-                {selectedChallenge.description.split(/\[(.*?)\]/).map((part, i) => {
-                  if (i % 2 === 1) {
+                {selectedChallenge.description.split(/(\[([^\]]+)\]\(([^)]+)\))/g).map((part, i) => {
+                  if (!part) return null;
+                  // Match markdown links [text](url)
+                  const mdLinkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+                  if (mdLinkMatch) {
+                    const [, text, url] = mdLinkMatch;
                     return (
                       <a
                         key={i}
-                        href={selectedChallenge.image}
+                        href={url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-cyber-blue hover:text-cyber-green transition-colors underline"
                       >
-                        {part}
+                        {text}
                       </a>
                     );
                   }
