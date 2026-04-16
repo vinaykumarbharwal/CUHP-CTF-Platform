@@ -27,7 +27,7 @@ function getVerificationBaseUrl() {
     return explicitUrl;
   }
 
-  const frontendUrl = (process.env.CORS_ORIGIN).trim().replace(/\/+$/, '');
+  const frontendUrl = (process.env.CORS_ORIGIN || "https://cuhp-ctf-2026.vercel.app/").trim().replace(/\/+$/, '');
   return `${frontendUrl}/verify-email`;
 }
 
