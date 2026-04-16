@@ -27,7 +27,7 @@ function getVerificationBaseUrl() {
     return explicitUrl;
   }
 
-  const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').trim().replace(/\/+$/, '');
+  const frontendUrl = (process.env.CORS_ORIGIN).trim().replace(/\/+$/, '');
   return `${frontendUrl}/verify-email`;
 }
 
