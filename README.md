@@ -7,6 +7,7 @@ CUHP-CTF-Platform
 
 ## Features
 - JWT-based authentication (register/login)
+- Email verification on registration (EmailJS verification link required before login)
 - Team system (create team, join via invite code, max 2 members)
 - Challenge browsing by category and difficulty
 - Flag submission with rate limiting
@@ -36,8 +37,20 @@ JWT_SECRET=your_super_secret_jwt_key_change_this
 ADMIN_USERNAME=admin
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=change_this_admin_password
+FRONTEND_URL=http://localhost:3000
+EMAIL_VERIFICATION_URL=http://localhost:3000/verify-email
+EMAILJS_SERVICE_ID=service_xxxxxxx
+EMAILJS_TEMPLATE_ID=template_xxxxxxx
+EMAILJS_PUBLIC_KEY=public_xxxxxxxxxxxxx
+EMAILJS_PRIVATE_KEY=private_xxxxxxxxxxxxx
+# Optional alias if your setup uses this variable name:
+EMAILJS_ACCESS_TOKEN=private_xxxxxxxxxxxxx
 PORT=5000
 ```
+
+Email verification template params expected by backend:
+- `verification_link` (or `verification_url`) for the clickable verification URL
+- `to_email`, `to_name`, `username`, `email` for recipient personalization
 
 MongoDB Atlas quick setup:
 1. Create a cluster in MongoDB Atlas.
@@ -102,6 +115,7 @@ npm run seed
 ## API Overview
 - `POST /api/auth/register`
 - `POST /api/auth/login`
+- `GET /api/auth/verify-email?token=...`
 - `POST /api/teams/create`
 - `POST /api/teams/join`
 - `GET /api/teams/my/team`
@@ -145,6 +159,9 @@ CUHP-CTF-Platform/
 - Login shows "Invalid credentials":
 	- Ensure you are using the account email (not username) and correct password.
 	- If using older data, log in once after backend restart so legacy plaintext passwords are auto-upgraded.
+- Login says to verify email first:
+	- Open the verification link sent during registration, then log in again.
+	- If link expired, a new verification link is required (add a resend flow or have an admin reset the account).
 - Invalid/expired token:
 	- Clear localStorage in browser and login again.
 - Create Team runtime error (`Cannot read properties of undefined (reading '0')`):

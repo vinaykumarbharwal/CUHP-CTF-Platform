@@ -1,11 +1,11 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const { connectDB } = require('./config/database');
 const Challenge = require('./models/Challenge');
 const Team = require('./models/Team');
 const Submission = require('./models/Submission');
 const createApp = require('./app');
 const { ensureAdminUser } = require('./utils/adminBootstrap');
-const challengeSeedData = require('./data/challenges');
+// const challengeSeedData = require('./data/challenges');
 
 const app = createApp();
 

@@ -72,16 +72,13 @@ export const AuthProvider = ({ children }) => {
         email: email.trim().toLowerCase(),
         password
       });
-      const { token: nextToken, user: nextUser } = response.data;
-      localStorage.setItem('token', nextToken);
-      localStorage.setItem('user', JSON.stringify(nextUser));
-      setToken(nextToken);
-      setUser(nextUser);
-      toast.success('Registration successful!');
-      return true;
+      const message = response.data?.message || 'Registration successful. Please check your email.';
+      toast.success(message);
+      return { success: true, message };
     } catch (error) {
-      toast.error(getApiErrorMessage(error, 'Registration failed'));
-      return false;
+      const message = getApiErrorMessage(error, 'Registration failed');
+      toast.error(message);
+      return { success: false, message };
     }
   };
 

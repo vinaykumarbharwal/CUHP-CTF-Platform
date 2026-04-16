@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Trophy, ChevronLeft } from 'lucide-react';
 import bgImage from '../assets/images/bg.png';
 
@@ -9,11 +9,17 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [registrationMessage, setRegistrationMessage] = useState('');
   const { register } = useAuth();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) {
+      return;
+    }
+
     const cleanUsername = username.trim();
     const cleanEmail = email.trim().toLowerCase();
 
@@ -21,9 +27,13 @@ function Register() {
       alert('Passwords do not match');
       return;
     }
-    const success = await register(cleanUsername, cleanEmail, password);
-    if (success) {
-      navigate('/dashboard');
+
+    setIsSubmitting(true);
+    const result = await register(cleanUsername, cleanEmail, password);
+    setIsSubmitting(false);
+    if (result?.success) {
+      setRegisteredEmail(cleanEmail);
+      setRegistrationMessage(result.message || 'Please check your email for the verification link.');
     }
   };
 
@@ -53,70 +63,83 @@ function Register() {
             <p className="mt-2 text-sm text-white/50 font-mono text-center uppercase tracking-widest">Join the competition</p>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
-            <div>
-              <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
-                Username
-              </label>
-              <input
-                type="text"
-                required
-                autoComplete="off"
-                className="cyber-input w-full font-mono text-sm"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
+          {registrationMessage ? (
+            <div className="space-y-5 border border-cyber-green/30 bg-cyber-green/5 rounded-xl p-5">
+              <p className="text-cyber-green font-black uppercase tracking-wider text-sm">Please check your email</p>
+              <p className="text-white/70 text-sm font-mono">{registrationMessage}</p>
+              <p className="text-white/60 text-xs font-mono break-all">
+                Verification link sent to: <span className="text-cyber-green">{registeredEmail}</span>
+              </p>
+              <Link to="/login" className="cyber-button block w-full py-3 text-sm text-center">
+                Go to Login
+              </Link>
             </div>
-            <div>
-              <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
-                Email address
-              </label>
-              <input
-                type="email"
-                required
-                autoComplete="off"
-                className="cyber-input w-full font-mono text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
-                Password
-              </label>
-              <input
-                type="password"
-                required
-                autoComplete="new-password"
-                className="cyber-input w-full font-mono text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                required
-                autoComplete="new-password"
-                className="cyber-input w-full font-mono text-sm"
-                placeholder="Confirm Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
+          ) : (
+            <form className="space-y-4" onSubmit={handleSubmit} autoComplete="off">
+              <div>
+                <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoComplete="off"
+                  className="cyber-input w-full font-mono text-sm"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
+                  Email address
+                </label>
+                <input
+                  type="email"
+                  required
+                  autoComplete="off"
+                  className="cyber-input w-full font-mono text-sm"
+                  placeholder="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  className="cyber-input w-full font-mono text-sm"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-1 ml-1">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  className="cyber-input w-full font-mono text-sm"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
 
-            <div className="pt-4">
-              <button type="submit" className="cyber-button w-full py-3 text-sm">
-                Register
-              </button>
-            </div>
-          </form>
+              <div className="pt-4">
+                <button type="submit" disabled={isSubmitting} className="cyber-button w-full py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                  {isSubmitting ? 'Registering...' : 'Register'}
+                </button>
+              </div>
+            </form>
+          )}
 
           <div className="mt-8 text-center border-t border-white/10 pt-6">
             <p className="text-sm text-white/40">
