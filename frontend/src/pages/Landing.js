@@ -34,6 +34,21 @@ const Landing = () => {
     timeStyle: 'short',
     timeZone: 'Asia/Kolkata'
   });
+  const registrationDeadline = new Date('2026-04-22T23:59:59+05:30');
+  const registrationDiffMs = registrationDeadline.getTime() - nowMs;
+  const registrationTotalSeconds = Math.max(0, Math.floor(registrationDiffMs / 1000));
+  const registrationCountdown = {
+    days: Math.floor(registrationTotalSeconds / 86400),
+    hours: Math.floor((registrationTotalSeconds % 86400) / 3600),
+    minutes: Math.floor((registrationTotalSeconds % 3600) / 60),
+    seconds: registrationTotalSeconds % 60,
+    hasClosed: registrationDiffMs <= 0
+  };
+  const registrationDeadlineText = registrationDeadline.toLocaleString('en-IN', {
+    dateStyle: 'long',
+    timeStyle: 'short',
+    timeZone: 'Asia/Kolkata'
+  });
 
   const fetchStats = async () => {
     try {
@@ -118,7 +133,24 @@ const Landing = () => {
             crypto, binary, forensics, and osint. Build skills, solve challenges,
             and climb the live leaderboard with your team.
           </p>
-          {!challengesUnlocked && (
+          {!user && (
+            <div className="max-w-3xl mx-auto mb-10 cyber-glass border border-yellow-400/30 rounded-xl p-6">
+              <p className="text-yellow-400 text-[10px] font-black uppercase tracking-[0.25em] mb-3">
+                Registration Countdown
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                <CountdownBox label="Days" value={registrationCountdown.days} />
+                <CountdownBox label="Hours" value={registrationCountdown.hours} />
+                <CountdownBox label="Minutes" value={registrationCountdown.minutes} />
+                <CountdownBox label="Seconds" value={registrationCountdown.seconds} />
+              </div>
+              <p className="text-white/70 font-mono text-xs uppercase tracking-wide">
+                {registrationCountdown.hasClosed ? 'Registration closed on ' : 'Registration closes on '}
+                <span className="text-yellow-300 font-black">{registrationDeadlineText}</span>.
+              </p>
+            </div>
+          )}
+          {!challengesUnlocked && user && (
             <div className="max-w-3xl mx-auto mb-10 cyber-glass border border-cyber-blue/30 rounded-xl p-6">
               <p className="text-cyber-blue text-[10px] font-black uppercase tracking-[0.25em] mb-3">
                 Challenge Unlock Countdown
@@ -139,11 +171,19 @@ const Landing = () => {
             <Link to={user ? "/dashboard" : "/login"} className="cyber-button px-10 py-4 text-sm w-full sm:w-72 flex items-center justify-center">
               {user ? "Enter Dashboard" : "Get Started"} <ChevronRight className="h-4 w-4 ml-2" />
             </Link>
-            <Link to="/leaderboard" className="cyber-button border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black px-10 py-4 text-sm w-full sm:w-72 overflow-hidden group">
-              <span className="relative z-10 flex items-center justify-center">
-                System Ranking <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </Link>
+            {!challengesUnlocked && user ? (
+              <div className="cyber-button border-cyber-blue/40 text-cyber-blue/90 px-10 py-4 text-sm w-full sm:w-72 cursor-default">
+                <span className="relative z-10 flex items-center justify-center font-black uppercase tracking-wider">
+                  Registered Teams: {loading ? '...' : stats.teams}
+                </span>
+              </div>
+            ) : user ? (
+              <Link to="/leaderboard" className="cyber-button border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black px-10 py-4 text-sm w-full sm:w-72 overflow-hidden group">
+                <span className="relative z-10 flex items-center justify-center">
+                  System Ranking <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </Link>
+            ) : null}
             {user && (
               <Link
                 to="/challenges"

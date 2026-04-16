@@ -2,10 +2,12 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Trophy, Flag, LayoutDashboard, BarChart3, LogOut, User } from 'lucide-react';
+import { hasChallengesUnlocked } from '../utils/constants';
 
 function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const showRegisteredTeamsLabel = !hasChallengesUnlocked();
 
   const handleLogout = () => {
     logout();
@@ -34,7 +36,7 @@ function Layout({ children }) {
                   <Flag className="h-4 w-4 mr-2" />Challenges
                 </Link>
                 <Link to="/leaderboard" className="inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-widest text-white/70 hover:text-cyber-green transition-colors border-b-2 border-transparent hover:border-cyber-green">
-                  <BarChart3 className="h-4 w-4 mr-2" />Leaderboard
+                  <BarChart3 className="h-4 w-4 mr-2" />{showRegisteredTeamsLabel ? 'Registered Teams' : 'Leaderboard'}
                 </Link>
               </div>
             </div>
@@ -61,7 +63,7 @@ function Layout({ children }) {
                 Challenges
               </Link>
               <Link to="/leaderboard" className="inline-flex justify-center items-center py-2 border border-white/10 rounded text-[10px] font-black uppercase tracking-wider text-white/70 hover:text-cyber-green hover:border-cyber-green/40 transition-colors">
-                Leaderboard
+                {showRegisteredTeamsLabel ? 'Teams' : 'Leaderboard'}
               </Link>
             </div>
           </div>

@@ -5,18 +5,34 @@ import { Trophy, Medal, Loader2 } from 'lucide-react';
 import AllTeamsProgressChart from '../components/Graph/AllTeamsProgressChart';
 import api from '../services/api';
 import useAutoRefresh from '../hooks/useAutoRefresh';
+import { useAuth } from '../contexts/AuthContext';
+import { hasChallengesUnlocked } from '../utils/constants';
 
 const COMPETITION_END_TIME = new Date('2026-04-13T03:02:00').getTime();
 
 function Leaderboard() {
+  const { user } = useAuth();
   const [teams, setTeams] = useState([]);
   const [graphSeries, setGraphSeries] = useState([]);
+  const [expandedTeamId, setExpandedTeamId] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const showRegisteredTeamsView = !hasChallengesUnlocked();
   const isLive = Date.now() < COMPETITION_END_TIME;
 
   async function fetchLeaderboard() {
     try {
+      if (showRegisteredTeamsView) {
+        const leaderboardResponse = await api.get('/leaderboard');
+        const registeredTeams = Array.isArray(leaderboardResponse.data)
+          ? leaderboardResponse.data
+          : [];
+
+        registeredTeams.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+        setTeams(registeredTeams);
+        return;
+      }
+
       const [leaderboardResponse, graphResponse] = await Promise.all([
         api.get('/leaderboard'),
         api.get('/graph/all-teams')
@@ -30,7 +46,7 @@ function Leaderboard() {
     }
   }
 
-  useAutoRefresh(fetchLeaderboard, { intervalMs: 30000, enabled: isLive || loading });
+  useAutoRefresh(fetchLeaderboard, { intervalMs: 30000, enabled: showRegisteredTeamsView || isLive || loading });
 
   const getRankIcon = (rank) => {
     switch (rank) {
@@ -47,6 +63,86 @@ function Leaderboard() {
         <div className="flex flex-col justify-center items-center h-96">
           <Loader2 className="h-12 w-12 text-cyber-green animate-spin mb-4" />
           <p className="text-cyber-green font-mono text-xs uppercase tracking-[0.3em] animate-pulse">Syncing Leaderboard...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (showRegisteredTeamsView) {
+    return (
+      <Layout>
+        <div className="py-8">
+          <div className="flex items-center space-x-4 mb-10">
+            <div className="h-1 bg-cyber-blue w-12 rounded-full shadow-[0_0_10px_rgba(0,240,255,0.5)]"></div>
+            <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
+              Registered Teams
+            </h1>
+          </div>
+
+          <div className="cyber-card p-8 max-w-2xl">
+            <p className="text-cyber-blue text-[10px] font-black uppercase tracking-[0.25em] mb-4">
+              Pre-Competition View
+            </p>
+            <div className="text-5xl font-black text-cyber-green font-bytebounce mb-3">
+              {teams.length}
+            </div>
+
+            <div className="mt-6 border-t border-white/10 pt-5">
+              <p className="text-white/60 font-mono text-xs uppercase tracking-wide mb-3">
+                Click any team to view members.
+              </p>
+
+              {teams.length === 0 ? (
+                <p className="text-white/40 font-mono text-xs uppercase tracking-wide">
+                  No registered teams found.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {teams.map((team) => {
+                    const isExpanded = expandedTeamId === String(team.id);
+                    const memberNames = (team.members || [])
+                      .map((member) => member?.username)
+                      .filter(Boolean);
+
+                    return (
+                      <div key={team.id} className="rounded-lg border border-white/10 bg-black/20">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedTeamId(isExpanded ? null : String(team.id))}
+                          className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-white/5 transition-colors"
+                        >
+                          <span className="text-sm font-black uppercase tracking-wide text-white">
+                            {team.name}
+                          </span>
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-blue">
+                            {isExpanded ? 'Hide Members' : 'Show Members'}
+                          </span>
+                        </button>
+
+                        {isExpanded && (
+                          <div className="px-4 pb-4 border-t border-white/10">
+                            {memberNames.length ? (
+                              <ul className="pt-3 space-y-1">
+                                {memberNames.map((name) => (
+                                  <li key={`${team.id}-${name}`} className="text-xs font-mono uppercase tracking-wide text-white/70">
+                                    {name}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="pt-3 text-xs font-mono uppercase tracking-wide text-white/40">
+                                No members available.
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </Layout>
     );

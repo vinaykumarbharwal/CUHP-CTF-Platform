@@ -27,6 +27,88 @@ const playCorrectFlagAudio = () => {
   });
 };
 
+const normalizeLinkUrl = (url) => {
+  if (!url) {
+    return '';
+  }
+
+  const trimmed = url.trim();
+  if (/^(https?:|mailto:|tel:|\/)/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  if (/^\/\//.test(trimmed)) {
+    return `https:${trimmed}`;
+  }
+
+  if (/^www\./i.test(trimmed)) {
+    return `https://${trimmed}`;
+  }
+
+  return trimmed;
+};
+
+const renderDescriptionWithLinks = (description, fallbackUrl) => {
+  const tokenRegex = /(\[[^\]]+\]\([^)]+\)|\[[^\]]+\]|https?:\/\/[^\s]+|www\.[^\s]+)/g;
+
+  return description.split(tokenRegex).map((part, i) => {
+    if (!part) {
+      return null;
+    }
+
+    const markdownMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (markdownMatch) {
+      const [, text, url] = markdownMatch;
+      const normalizedUrl = normalizeLinkUrl(url);
+      return (
+        <a
+          key={`md-${i}`}
+          href={normalizedUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-cyber-blue hover:text-cyber-green transition-colors underline"
+        >
+          {text}
+        </a>
+      );
+    }
+
+    const bracketMatch = part.match(/^\[([^\]]+)\]$/);
+    if (bracketMatch && fallbackUrl) {
+      const [, text] = bracketMatch;
+      const normalizedFallbackUrl = normalizeLinkUrl(fallbackUrl);
+      return (
+        <a
+          key={`fallback-${i}`}
+          href={normalizedFallbackUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-cyber-blue hover:text-cyber-green transition-colors underline"
+        >
+          {text}
+        </a>
+      );
+    }
+
+    if (/^(https?:\/\/|www\.)/i.test(part)) {
+      const normalizedUrl = normalizeLinkUrl(part);
+      return (
+        <a
+          key={`url-${i}`}
+          href={normalizedUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-cyber-blue hover:text-cyber-green transition-colors underline break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+
+    return <React.Fragment key={`text-${i}`}>{part}</React.Fragment>;
+  });
+};
+
 function Challenges() {
   const { user } = useAuth();
   const [challenges, setChallenges] = useState([]);
@@ -213,14 +295,6 @@ function Challenges() {
       .replace(/^_+|_+$/g, '');
 
     return `${fallbackTitle || 'challenge_image'}.jpg`;
-  }, [selectedChallenge]);
-
-  const hasExplicitImageLabel = useMemo(() => {
-    if (!selectedChallenge?.description) {
-      return false;
-    }
-
-    return /\[.*?:\s*[^\]]+\]/i.test(selectedChallenge.description);
   }, [selectedChallenge]);
 
   const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'];
@@ -444,10 +518,10 @@ function Challenges() {
               <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-4">{selectedChallenge.title}</h2>
               <div className="h-0.5 w-16 bg-cyber-blue mb-6"></div>
 
-              {selectedChallenge.image && hasExplicitImageLabel && (
+              {selectedChallenge.image && (
                 <div className="mb-6">
                   <a
-                    href={selectedChallenge.image}
+                    href={normalizeLinkUrl(selectedChallenge.image)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-cyber-blue hover:text-cyber-green transition-colors text-[10px] font-black uppercase tracking-[0.2em] break-all"
@@ -457,27 +531,8 @@ function Challenges() {
                 </div>
               )}
 
-              <div className="text-white/70 font-mono text-sm leading-relaxed mb-6 bg-white/5 p-4 rounded border border-white/5">
-                {selectedChallenge.description.split(/(\[([^\]]+)\]\(([^)]+)\))/g).map((part, i) => {
-                  if (!part) return null;
-                  // Match markdown links [text](url)
-                  const mdLinkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-                  if (mdLinkMatch) {
-                    const [, text, url] = mdLinkMatch;
-                    return (
-                      <a
-                        key={i}
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-cyber-blue hover:text-cyber-green transition-colors underline"
-                      >
-                        {text}
-                      </a>
-                    );
-                  }
-                  return part;
-                })}
+              <div className="text-white/70 font-mono text-sm leading-relaxed whitespace-pre-wrap mb-6 bg-white/5 p-4 rounded border border-white/5">
+                {renderDescriptionWithLinks(selectedChallenge.description, selectedChallenge.image)}
               </div>
 
               <div className="text-[10px] font-black text-white/40 uppercase tracking-widest bg-black/30 p-2 rounded inline-block">
