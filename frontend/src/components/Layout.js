@@ -8,7 +8,7 @@ function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const showRegisteredTeamsLabel = !hasChallengesUnlocked() && user?.role !== 'admin';
-  const canViewLeaderboard = hasChallengesUnlocked() || user?.role === 'admin';
+  const canViewLeaderboard = true;
 
   const handleLogout = () => {
     logout();

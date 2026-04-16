@@ -41,9 +41,24 @@ function requestJson(server, method, path, { token } = {}) {
   });
 }
 
-test('leaderboard is blocked for non-admin before challenge date', async () => {
+test('leaderboard returns registered teams for non-admin before challenge date', async () => {
   const originalDateNow = Date.now;
+  const originalTeamFind = Team.find;
   Date.now = () => new Date('2026-04-01T00:00:00.000Z').getTime();
+
+  Team.find = () => ({
+    populate() {
+      return this;
+    },
+    select() {
+      return this;
+    },
+    lean() {
+      return Promise.resolve([
+        { _id: '507f1f77bcf86cd799439099', name: 'alpha', members: [{ username: 'u1' }] }
+      ]);
+    }
+  });
 
   const app = createApp();
   const server = app.listen(0);
@@ -55,9 +70,13 @@ test('leaderboard is blocked for non-admin before challenge date', async () => {
 
   try {
     const response = await requestJson(server, 'GET', '/api/leaderboard', { token });
-    assert.equal(response.status, 403);
-    assert.equal(response.body.error, 'Leaderboard will be visible on 08 May 2026 at 10:00 AM IST');
+    assert.equal(response.status, 200);
+    assert.equal(Array.isArray(response.body), true);
+    assert.equal(response.body[0].name, 'alpha');
+    assert.equal(response.body[0].totalScore, 0);
+    assert.equal(response.body[0].solvedCount, 0);
   } finally {
+    Team.find = originalTeamFind;
     Date.now = originalDateNow;
     await new Promise((resolve) => server.close(resolve));
   }
