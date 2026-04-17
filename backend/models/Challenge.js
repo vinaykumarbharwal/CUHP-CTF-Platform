@@ -11,7 +11,7 @@ const challengeSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'],
+    enum: ['Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic', 'Reverse Engineering'],
     required: true
   },
   difficulty: {
