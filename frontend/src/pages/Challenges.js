@@ -336,6 +336,20 @@ function Challenges() {
     return result;
   }, [nonSampleChallenges, category, solveFilter, solvedChallengeIds]);
 
+  const categoryOrder = useMemo(
+    () => categories.filter((c) => c !== 'All'),
+    [categories]
+  );
+
+  const groupedChallengesByCategory = useMemo(() => {
+    return categoryOrder
+      .map((categoryName) => ({
+        categoryName,
+        items: finalChallenges.filter((challenge) => challenge.category === categoryName)
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [finalChallenges, categoryOrder]);
+
   return (
     <Layout>
       <div className="py-8">
@@ -445,64 +459,156 @@ function Challenges() {
             </div>
 
             {/* Challenges Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {finalChallenges.map((challenge) => (
-                <div
-                  key={challenge._id}
-                  className={`cyber-card p-6 cursor-pointer group flex flex-col justify-between ${
-                    isSolved(challenge._id)
-                      ? 'bg-cyber-green/15 border-cyber-green shadow-[0_0_24px_rgba(0,255,65,0.25)]'
-                      : 'border-cyber-blue/20'
-                  }`}
-                  onClick={() => {
-                    setSelectedChallenge(challenge);
-                    setShowSolvedByList(false);
-                  }}
-                >
-                  <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{challenge.category}</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${
-                        challenge.difficulty === 'Easy' ? 'text-cyber-green border-cyber-green/30 bg-cyber-green/5' :
-                        challenge.difficulty === 'Medium' ? 'text-yellow-400 border-yellow-400/30 bg-yellow-400/5' :
-                        challenge.difficulty === 'Hard' ? 'text-orange-500 border-orange-500/30 bg-orange-500/5' :
-                        'text-red-500 border-red-500/30 bg-red-500/5'
-                      }`}>
-                        {challenge.difficulty}
+            {category === 'All' ? (
+              <div className="space-y-10">
+                {groupedChallengesByCategory.map((group) => (
+                  <section key={group.categoryName}>
+                    <div className="flex items-center justify-between mb-5 gap-3">
+                      <div className="inline-flex items-center gap-3 px-4 py-2 rounded-lg border border-cyber-green/40 bg-cyber-green/10 shadow-[0_0_18px_rgba(0,255,65,0.16)]">
+                        <div className="h-0.5 w-7 bg-cyber-green"></div>
+                        <h3 className="text-xs sm:text-sm font-black uppercase tracking-[0.24em] text-cyber-green">
+                          {group.categoryName}
+                        </h3>
+                      </div>
+                      <span className="px-3 py-1 rounded border border-white/15 bg-black/25 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-white/65">
+                        {group.items.length} Problems
                       </span>
                     </div>
-                    <h3 className={`text-xl font-black uppercase tracking-tight mb-2 transition-colors ${
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {group.items.map((challenge) => (
+                        <div
+                          key={challenge._id}
+                          className={`cyber-card p-6 cursor-pointer group flex flex-col justify-between ${
+                            isSolved(challenge._id)
+                              ? 'bg-cyber-green/15 border-cyber-green shadow-[0_0_24px_rgba(0,255,65,0.25)]'
+                              : 'border-cyber-blue/20'
+                          }`}
+                          onClick={() => {
+                            setSelectedChallenge(challenge);
+                            setShowSolvedByList(false);
+                          }}
+                        >
+                          <div>
+                            <div className="flex justify-between items-start mb-4">
+                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{challenge.category}</span>
+                              <div className="flex items-center gap-2">
+                                {challenge.firstBlood && (
+                                  <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded border border-red-500/60 bg-red-500/10 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.2)]">
+                                    🩸 {challenge.firstBlood}
+                                  </span>
+                                )}
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${
+                                challenge.difficulty === 'Easy' ? 'text-cyber-green border-cyber-green/30 bg-cyber-green/5' :
+                                challenge.difficulty === 'Medium' ? 'text-yellow-400 border-yellow-400/30 bg-yellow-400/5' :
+                                challenge.difficulty === 'Hard' ? 'text-orange-500 border-orange-500/30 bg-orange-500/5' :
+                                'text-red-500 border-red-500/30 bg-red-500/5'
+                              }`}>
+                                {challenge.difficulty}
+                              </span>
+                              </div>
+                            </div>
+                            <h3 className={`text-xl font-black uppercase tracking-tight mb-2 transition-colors ${
+                              isSolved(challenge._id)
+                                ? 'text-cyber-green group-hover:text-cyber-green'
+                                : 'text-white group-hover:text-cyber-blue'
+                            }`}>
+                              {challenge.title}
+                            </h3>
+                          </div>
+
+                          <div className="mt-6 flex items-end justify-between">
+                            <div>
+                               <p className={`text-2xl font-black leading-none ${
+                                 isSolved(challenge._id) ? 'text-cyber-green' : 'text-cyber-blue'
+                               }`}>{challenge.points}</p>
+                               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Points</p>
+                            </div>
+                            <div className="text-right">
+                              {isSolved(challenge._id) ? (
+                                <div className="flex items-center text-cyber-green text-[10px] font-black uppercase tracking-widest">
+                                  <div className="w-1.5 h-1.5 bg-cyber-green rounded-full mr-2 animate-pulse"></div>
+                                  Solved
+                                </div>
+                              ) : (
+                                <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                                   Solves: {challenge.solvedCount || 0}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {finalChallenges.map((challenge) => (
+                  <div
+                    key={challenge._id}
+                    className={`cyber-card p-6 cursor-pointer group flex flex-col justify-between ${
                       isSolved(challenge._id)
-                        ? 'text-cyber-green group-hover:text-cyber-green'
-                        : 'text-white group-hover:text-cyber-blue'
-                    }`}>
-                      {challenge.title}
-                    </h3>
-                  </div>
-                  
-                  <div className="mt-6 flex items-end justify-between">
+                        ? 'bg-cyber-green/15 border-cyber-green shadow-[0_0_24px_rgba(0,255,65,0.25)]'
+                        : 'border-cyber-blue/20'
+                    }`}
+                    onClick={() => {
+                      setSelectedChallenge(challenge);
+                      setShowSolvedByList(false);
+                    }}
+                  >
                     <div>
-                       <p className={`text-2xl font-black leading-none ${
-                         isSolved(challenge._id) ? 'text-cyber-green' : 'text-cyber-blue'
-                       }`}>{challenge.points}</p>
-                       <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Points</p>
+                      <div className="flex justify-between items-start mb-4">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">{challenge.category}</span>
+                        <div className="flex items-center gap-2">
+                          {challenge.firstBlood && (
+                            <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded border border-red-500/60 bg-red-500/10 text-red-400 shadow-[0_0_8px_rgba(239,68,68,0.2)]">
+                              🩸 {challenge.firstBlood}
+                            </span>
+                          )}
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${
+                          challenge.difficulty === 'Easy' ? 'text-cyber-green border-cyber-green/30 bg-cyber-green/5' :
+                          challenge.difficulty === 'Medium' ? 'text-yellow-400 border-yellow-400/30 bg-yellow-400/5' :
+                          challenge.difficulty === 'Hard' ? 'text-orange-500 border-orange-500/30 bg-orange-500/5' :
+                          'text-red-500 border-red-500/30 bg-red-500/5'
+                        }`}>
+                          {challenge.difficulty}
+                        </span>
+                        </div>
+                      </div>
+                      <h3 className={`text-xl font-black uppercase tracking-tight mb-2 transition-colors ${
+                        isSolved(challenge._id)
+                          ? 'text-cyber-green group-hover:text-cyber-green'
+                          : 'text-white group-hover:text-cyber-blue'
+                      }`}>
+                        {challenge.title}
+                      </h3>
                     </div>
-                    <div className="text-right">
-                      {isSolved(challenge._id) ? (
-                        <div className="flex items-center text-cyber-green text-[10px] font-black uppercase tracking-widest">
-                          <div className="w-1.5 h-1.5 bg-cyber-green rounded-full mr-2 animate-pulse"></div>
-                          Solved
-                        </div>
-                      ) : (
-                        <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">
-                           Solves: {challenge.solvedCount || 0}
-                        </div>
-                      )}
+
+                    <div className="mt-6 flex items-end justify-between">
+                      <div>
+                         <p className={`text-2xl font-black leading-none ${
+                           isSolved(challenge._id) ? 'text-cyber-green' : 'text-cyber-blue'
+                         }`}>{challenge.points}</p>
+                         <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Points</p>
+                      </div>
+                      <div className="text-right">
+                        {isSolved(challenge._id) ? (
+                          <div className="flex items-center text-cyber-green text-[10px] font-black uppercase tracking-widest">
+                            <div className="w-1.5 h-1.5 bg-cyber-green rounded-full mr-2 animate-pulse"></div>
+                            Solved
+                          </div>
+                        ) : (
+                          <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+                             Solves: {challenge.solvedCount || 0}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>

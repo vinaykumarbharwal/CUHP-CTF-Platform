@@ -23,7 +23,22 @@ function getVerificationBaseUrl() {
     return explicitUrl;
   }
 
-  const frontendUrl = (process.env.CORS_ORIGIN || "https://cuhp-ctf-2026.vercel.app/").trim().replace(/\/+$/, '');
+  const envFrontendUrl = (
+    process.env.FRONTEND_URL ||
+    process.env.CORS_ORIGIN ||
+    process.env.VERCEL_URL ||
+    ''
+  ).trim().replace(/\/+$/, '');
+
+  if (envFrontendUrl) {
+    return `${envFrontendUrl}/verify-email`;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://cuhp-ctf-2026.vercel.app/verify-email';
+  }
+
+  const frontendUrl = 'http://localhost:3000';
   return `${frontendUrl}/verify-email`;
 }
 

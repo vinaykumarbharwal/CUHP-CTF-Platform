@@ -86,4 +86,67 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+router.get('/individual/top-scorers', auth, async (req, res) => {
+  try {
+    if (!hasChallengesUnlocked() && req.userRole !== 'admin') {
+      return res.json([]);
+    }
+
+    const individualStats = await Submission.aggregate([
+      {
+        $match: {
+          isCorrect: true,
+          submittedBy: { $ne: null }
+        }
+      },
+      {
+        $group: {
+          _id: '$submittedBy',
+          totalScore: { $sum: '$points' },
+          solvedCount: { $sum: 1 },
+          earliestSubmission: { $min: '$submittedAt' }
+        }
+      },
+      {
+        $sort: {
+          totalScore: -1,
+          earliestSubmission: 1
+        }
+      },
+      {
+        $limit: 10
+      }
+    ]);
+
+    const userIds = individualStats.map((stat) => stat._id);
+    const User = require('../models/User');
+    const users = await User.find({ _id: { $in: userIds } })
+      .populate('teamId', 'name')
+      .select('username teamId')
+      .lean();
+
+    const userMap = users.reduce((acc, user) => {
+      acc[String(user._id)] = {
+        username: user.username,
+        teamName: user.teamId?.name || 'No Team'
+      };
+      return acc;
+    }, {});
+
+    const rankedIndividuals = individualStats
+      .map((stat, index) => ({
+        rank: index + 1,
+        userId: stat._id,
+        username: userMap[String(stat._id)]?.username || 'Unknown',
+        teamName: userMap[String(stat._id)]?.teamName || 'No Team',
+        totalScore: stat.totalScore || 0,
+        solvedCount: stat.solvedCount || 0
+      }));
+
+    return res.json(rankedIndividuals);
+  } catch (error) {
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

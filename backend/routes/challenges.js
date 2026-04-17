@@ -5,6 +5,7 @@ const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 const Challenge = require('../models/Challenge');
 const Team = require('../models/Team');
+const User = require('../models/User');
 const Submission = require('../models/Submission');
 const { hasChallengesUnlocked, getSecondsUntilChallengesUnlock } = require('../utils/ctfSchedule');
 
@@ -18,9 +19,28 @@ router.get('/', auth, async (req, res) => {
       });
     }
 
-    const [challenges, teams, solvedPairs] = await Promise.all([
+    const [challenges, teams, firstBloodSubmissions, solvedPairs] = await Promise.all([
       Challenge.find({}, '-flag').lean(),
       Team.find({}, 'name').lean(),
+      Submission.aggregate([
+        {
+          $match: {
+            isCorrect: true,
+            teamId: { $ne: null },
+            challengeId: { $ne: null },
+            submittedBy: { $ne: null }
+          }
+        },
+        {
+          $sort: { submittedAt: 1 }
+        },
+        {
+          $group: {
+            _id: '$challengeId',
+            firstSolverId: { $first: '$submittedBy' }
+          }
+        }
+      ]),
       Submission.aggregate([
         {
           $match: {
@@ -39,6 +59,24 @@ router.get('/', auth, async (req, res) => {
         }
       ])
     ]);
+
+    const firstBloodMap = firstBloodSubmissions.reduce((acc, doc) => {
+      acc[String(doc._id)] = doc.firstSolverId;
+      return acc;
+    }, {});
+
+    const firstSolverIds = firstBloodSubmissions
+      .map((doc) => doc.firstSolverId)
+      .filter(Boolean);
+
+    const users = firstSolverIds.length
+      ? await User.find({ _id: { $in: firstSolverIds } }).select('username').lean()
+      : [];
+
+    const usernames = users.reduce((acc, user) => {
+      acc[String(user._id)] = user.username;
+      return acc;
+    }, {});
 
     const teamNameMap = teams.reduce((acc, team) => {
       acc[String(team._id)] = team.name;
@@ -60,10 +98,14 @@ router.get('/', auth, async (req, res) => {
 
     const enrichedChallenges = challenges.map((challenge) => {
       const solvedByTeams = solvedByMap[String(challenge._id)] || [];
+      const firstSolverId = firstBloodMap[String(challenge._id)];
+      const firstSolverUsername = firstSolverId ? usernames[String(firstSolverId)] : null;
+
       return {
         ...challenge,
         solvedByTeams,
-        solvedCount: solvedByTeams.length
+        solvedCount: solvedByTeams.length,
+        firstBlood: firstSolverUsername || null
       };
     });
 
@@ -98,7 +140,7 @@ router.post('/', [
   admin,
   body('title').isString().trim().isLength({ min: 1 }),
   body('description').isString().trim().isLength({ min: 1 }),
-  body('category').isIn(['Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic']),
+  body('category').isIn(['Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic', 'Reverse Engineering']),
   body('difficulty').isIn(['Easy', 'Medium', 'Hard', 'Expert']),
   body('points').isInt({ min: 1 }),
   body('image').optional().isString(),
@@ -137,7 +179,7 @@ router.put('/:id', [
   admin,
   body('title').optional().isString().trim().isLength({ min: 1 }),
   body('description').optional().isString().trim().isLength({ min: 1 }),
-  body('category').optional().isIn(['Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic']),
+  body('category').optional().isIn(['Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic', 'Reverse Engineering']),
   body('difficulty').optional().isIn(['Easy', 'Medium', 'Hard', 'Expert']),
   body('points').optional().isInt({ min: 1 }),
   body('image').optional().isString(),

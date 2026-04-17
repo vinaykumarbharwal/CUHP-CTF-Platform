@@ -17,6 +17,7 @@ function Leaderboard() {
   const [graphSeries, setGraphSeries] = useState([]);
   const [expandedTeamId, setExpandedTeamId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [individualScorers, setIndividualScorers] = useState([]);
 
   const challengesUnlocked = hasChallengesUnlocked();
   const isAdmin = user?.role === 'admin';
@@ -36,12 +37,14 @@ function Leaderboard() {
         return;
       }
 
-      const [leaderboardResponse, graphResponse] = await Promise.all([
+      const [leaderboardResponse, graphResponse, individualScorersResponse] = await Promise.all([
         api.get('/leaderboard'),
-        api.get('/graph/all-teams')
+        api.get('/graph/all-teams'),
+        api.get('/leaderboard/individual/top-scorers')
       ]);
       setTeams(leaderboardResponse.data);
       setGraphSeries(Array.isArray(graphResponse.data) ? graphResponse.data : []);
+      setIndividualScorers(Array.isArray(individualScorersResponse.data) ? individualScorersResponse.data : []);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
@@ -186,6 +189,66 @@ function Leaderboard() {
           <div className="bg-black/30 rounded-lg p-4 border border-white/5">
             <AllTeamsProgressChart series={graphSeries} />
           </div>
+        </div>
+
+        <div className="cyber-glass rounded-xl overflow-hidden border border-white/10 shadow-2xl mb-10">
+          <div className="px-6 py-4 border-b border-white/10 bg-white/5">
+            <h2 className="text-xl font-black uppercase tracking-widest text-cyber-blue flex items-center gap-3">
+              <span className="text-lg">👤</span>
+              Best Individual Scorers
+            </h2>
+          </div>
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-white/5 border-b border-white/10">
+                <th className="px-6 py-4 text-left text-xs font-black text-cyber-blue uppercase tracking-[0.2em]">Rank</th>
+                <th className="px-6 py-4 text-left text-xs font-black text-cyber-blue uppercase tracking-[0.2em]">Username</th>
+                <th className="px-6 py-4 text-left text-xs font-black text-cyber-blue uppercase tracking-[0.2em]">Score</th>
+                <th className="px-6 py-4 text-left text-xs font-black text-cyber-blue uppercase tracking-[0.2em]">Solves</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 font-mono">
+              {(individualScorers || []).slice(0, 3).length > 0 ? (
+                (individualScorers || []).slice(0, 3).map((person) => (
+                  <tr key={person.userId} className="hover:bg-white/5 transition-colors group">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        {person.rank === 1 ? (
+                          <Trophy className="w-6 h-6 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
+                        ) : person.rank === 2 ? (
+                          <Medal className="w-6 h-6 text-gray-400 drop-shadow-[0_0_8px_rgba(156,163,175,0.5)]" />
+                        ) : person.rank === 3 ? (
+                          <Medal className="w-6 h-6 text-amber-600 drop-shadow-[0_0_8px_rgba(180,83,9,0.5)]" />
+                        ) : (
+                          <span className="text-white/50 font-black">{person.rank}</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-black text-white uppercase group-hover:text-cyber-blue transition-colors">
+                        {person.username}
+                        <div className="text-[10px] font-mono text-white/40 uppercase tracking-[0.2em] mt-1">
+                          {person.teamName}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-xl font-black text-cyber-green tracking-tighter">{person.totalScore}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-xs font-black text-white/50">{person.solvedCount} solves</div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                    <td colSpan="4" className="px-6 py-8 text-center text-sm font-mono text-white/40 uppercase tracking-wide">
+                    No individual scores available yet
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         <div className="cyber-glass rounded-xl overflow-hidden border border-white/10 shadow-2xl">
