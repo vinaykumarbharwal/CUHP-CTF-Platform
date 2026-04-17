@@ -685,7 +685,13 @@ function Challenges() {
                    <span className="text-cyber-green font-black uppercase text-xs tracking-widest">This challenge is already solved by your team.</span>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    submitFlag();
+                  }}
+                >
                   <div className="relative">
                     <label className="block text-[10px] font-black text-cyber-blue uppercase tracking-widest mb-2 ml-1">Flag (CUHP{"{...}"})</label>
                     <input
@@ -703,19 +709,19 @@ function Challenges() {
                     </p>
                   )}
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                    <button onClick={() => {
+                    <button type="button" onClick={() => {
                       setSelectedChallenge(null);
                       setShowSolvedByList(false);
                     }} className="w-full sm:flex-1 px-4 py-3 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
                     <button
-                      onClick={submitFlag}
+                      type="submit"
                       disabled={isSubmitting || isSelectedChallengeCoolingDown}
                       className="cyber-button w-full sm:flex-[2] py-3 text-sm border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? 'Submitting...' : 'Submit'}
                     </button>
                   </div>
-                </div>
+                </form>
               )}
             </div>
           </div>

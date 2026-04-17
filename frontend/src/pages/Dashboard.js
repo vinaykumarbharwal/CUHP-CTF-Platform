@@ -212,7 +212,13 @@ function Dashboard() {
               <span className="w-1.5 h-6 bg-cyber-green mr-3"></span>
               Create Team
             </h2>
-            <div className="space-y-6">
+            <form
+              className="space-y-6"
+              onSubmit={(e) => {
+                e.preventDefault();
+                createTeam();
+              }}
+            >
               <div>
                 <label className="block text-[10px] font-black text-cyber-green uppercase tracking-widest mb-2 ml-1">Team Name</label>
                 <input
@@ -224,10 +230,10 @@ function Dashboard() {
                 />
               </div>
               <div className="flex space-x-4">
-                <button onClick={() => setShowCreateModal(false)} className="flex-1 px-4 py-2 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
-                <button onClick={createTeam} className="cyber-button flex-[2] py-2 text-xs">Create</button>
+                <button type="button" onClick={() => setShowCreateModal(false)} className="flex-1 px-4 py-2 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
+                <button type="submit" className="cyber-button flex-[2] py-2 text-xs">Create</button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}
@@ -239,7 +245,13 @@ function Dashboard() {
               <span className="w-1.5 h-6 bg-cyber-blue mr-3"></span>
               Join Team
             </h2>
-            <div className="space-y-6">
+            <form
+              className="space-y-6"
+              onSubmit={(e) => {
+                e.preventDefault();
+                joinTeam();
+              }}
+            >
               <div>
                 <label className="block text-[10px] font-black text-cyber-blue uppercase tracking-widest mb-2 ml-1">Invite Code</label>
                 <input
@@ -251,10 +263,10 @@ function Dashboard() {
                 />
               </div>
               <div className="flex space-x-4">
-                <button onClick={() => setShowJoinModal(false)} className="flex-1 px-4 py-2 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
-                <button onClick={joinTeam} className="cyber-button flex-[2] py-2 text-xs border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black hover:shadow-[0_0_15px_rgba(0,240,255,0.5)]">Join</button>
+                <button type="button" onClick={() => setShowJoinModal(false)} className="flex-1 px-4 py-2 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
+                <button type="submit" className="cyber-button flex-[2] py-2 text-xs border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black hover:shadow-[0_0_15px_rgba(0,240,255,0.5)]">Join</button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}

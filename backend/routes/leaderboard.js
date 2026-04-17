@@ -5,6 +5,30 @@ const Team = require('../models/Team');
 const Submission = require('../models/Submission');
 const { hasChallengesUnlocked } = require('../utils/ctfSchedule');
 
+router.get('/registered-teams', auth, async (req, res) => {
+  try {
+    const teams = await Team.find({})
+      .populate('members', 'username')
+      .select('name members createdAt')
+      .sort({ createdAt: 1 })
+      .lean();
+
+    const registeredTeams = teams.map((team, index) => ({
+      rank: index + 1,
+      id: team._id,
+      name: team.name,
+      totalScore: 0,
+      members: team.members || [],
+      solvedCount: 0,
+      createdAt: team.createdAt
+    }));
+
+    return res.json(registeredTeams);
+  } catch (error) {
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/', auth, async (req, res) => {
   try {
     if (!hasChallengesUnlocked() && req.userRole !== 'admin') {

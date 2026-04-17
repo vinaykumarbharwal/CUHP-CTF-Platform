@@ -27,7 +27,10 @@ function Layout({ children }) {
                   <Trophy className="h-8 w-8 text-cyber-green group-hover:scale-110 transition-transform" />
                   <div className="absolute inset-0 bg-cyber-green/20 blur-lg rounded-full animate-pulse"></div>
                 </div>
-                <span className="ml-3 text-lg sm:text-2xl font-black text-white tracking-tighter uppercase italic group-hover:text-cyber-green transition-colors font-bytebounce truncate">CUHP CTF</span>
+                <span className="ml-3 inline-flex items-center gap-2 text-lg sm:text-2xl font-black text-white tracking-[0.14em] uppercase italic group-hover:text-cyber-green transition-colors font-bytebounce truncate whitespace-nowrap">
+                  <span>CUHP</span>
+                  <span>CTF</span>
+                </span>
               </div>
               <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
                 <Link to="/dashboard" className="inline-flex items-center px-1 pt-1 text-sm font-bold uppercase tracking-widest text-white/70 hover:text-cyber-green transition-colors border-b-2 border-transparent hover:border-cyber-green">

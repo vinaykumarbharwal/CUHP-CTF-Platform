@@ -14,6 +14,7 @@ const COMPETITION_END_TIME = new Date('2026-04-13T03:02:00').getTime();
 function Leaderboard() {
   const { user } = useAuth();
   const [teams, setTeams] = useState([]);
+  const [registeredTeams, setRegisteredTeams] = useState([]);
   const [graphSeries, setGraphSeries] = useState([]);
   const [expandedTeamId, setExpandedTeamId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,31 +25,61 @@ function Leaderboard() {
   const showRegisteredTeamsView = !challengesUnlocked && !isAdmin;
   const isLive = Date.now() < COMPETITION_END_TIME;
   const registeredTeamsForAdmin = useMemo(
-    () => [...(teams || [])].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))),
-    [teams]
+    () => [...(registeredTeams || [])].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))),
+    [registeredTeams]
   );
+
+  const sortTeamsByName = (items) => [...(items || [])].sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
+  const getTeamId = (team) => String(team?.id || team?._id || team?.name || '');
 
   async function fetchLeaderboard() {
     try {
       if (showRegisteredTeamsView) {
-        const leaderboardResponse = await api.get('/leaderboard');
-        const registeredTeams = Array.isArray(leaderboardResponse.data)
-          ? leaderboardResponse.data
-          : [];
+        const registeredTeamsResponse = await api.get('/leaderboard/registered-teams');
+        const teamsForRegistrationView = sortTeamsByName(
+          Array.isArray(registeredTeamsResponse.data) ? registeredTeamsResponse.data : []
+        );
 
-        registeredTeams.sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-        setTeams(registeredTeams);
+        setRegisteredTeams(teamsForRegistrationView);
+        setTeams([]);
+        setGraphSeries([]);
+        setIndividualScorers([]);
         return;
       }
 
-      const [leaderboardResponse, graphResponse, individualScorersResponse] = await Promise.all([
+      const [leaderboardResponse, graphResponse, individualScorersResponse, registeredTeamsResponse] = await Promise.allSettled([
         api.get('/leaderboard'),
         api.get('/graph/all-teams'),
-        api.get('/leaderboard/individual/top-scorers')
+        api.get('/leaderboard/individual/top-scorers'),
+        isAdmin ? api.get('/leaderboard/registered-teams') : Promise.resolve({ data: [] })
       ]);
-      setTeams(leaderboardResponse.data);
-      setGraphSeries(Array.isArray(graphResponse.data) ? graphResponse.data : []);
-      setIndividualScorers(Array.isArray(individualScorersResponse.data) ? individualScorersResponse.data : []);
+
+      if (leaderboardResponse.status === 'fulfilled') {
+        setTeams(Array.isArray(leaderboardResponse.value.data) ? leaderboardResponse.value.data : []);
+      } else {
+        setTeams([]);
+      }
+
+      if (graphResponse.status === 'fulfilled') {
+        setGraphSeries(Array.isArray(graphResponse.value.data) ? graphResponse.value.data : []);
+      } else {
+        setGraphSeries([]);
+      }
+
+      if (individualScorersResponse.status === 'fulfilled') {
+        setIndividualScorers(Array.isArray(individualScorersResponse.value.data) ? individualScorersResponse.value.data : []);
+      } else {
+        setIndividualScorers([]);
+      }
+
+      if (registeredTeamsResponse.status === 'fulfilled') {
+        const adminRegisteredTeams = sortTeamsByName(
+          Array.isArray(registeredTeamsResponse.value.data) ? registeredTeamsResponse.value.data : []
+        );
+        setRegisteredTeams(adminRegisteredTeams);
+      } else {
+        setRegisteredTeams([]);
+      }
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
@@ -58,13 +89,39 @@ function Leaderboard() {
 
   useAutoRefresh(fetchLeaderboard, { intervalMs: 30000, enabled: showRegisteredTeamsView || isLive || loading });
 
-  const getRankIcon = (rank) => {
-    switch (rank) {
-      case 1: return <Trophy className="w-6 h-6 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]" />;
-      case 2: return <Medal className="w-6 h-6 text-gray-400 drop-shadow-[0_0_8px_rgba(156,163,175,0.5)]" />;
-      case 3: return <Medal className="w-6 h-6 text-amber-600 drop-shadow-[0_0_8px_rgba(180,83,9,0.5)]" />;
-      default: return <span className="text-white/50 font-black font-mono">{rank}</span>;
+  const getRankBadge = (rank) => {
+    if (rank === 1) {
+      return (
+        <div className="inline-flex min-w-12 items-center justify-center gap-2 rounded-full border border-yellow-400/40 bg-yellow-400/10 px-3 py-1 text-sm font-black text-yellow-300 shadow-[0_0_14px_rgba(234,179,8,0.25)]">
+          <Trophy className="h-4 w-4" />
+          <span>1</span>
+        </div>
+      );
     }
+
+    if (rank === 2) {
+      return (
+        <div className="inline-flex min-w-12 items-center justify-center gap-2 rounded-full border border-gray-300/40 bg-gray-300/10 px-3 py-1 text-sm font-black text-gray-200 shadow-[0_0_10px_rgba(156,163,175,0.15)]">
+          <Medal className="h-4 w-4" />
+          <span>2</span>
+        </div>
+      );
+    }
+
+    if (rank === 3) {
+      return (
+        <div className="inline-flex min-w-12 items-center justify-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-sm font-black text-amber-300 shadow-[0_0_10px_rgba(180,83,9,0.15)]">
+          <Medal className="h-4 w-4" />
+          <span>3</span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="inline-flex min-w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm font-black font-mono text-white/70">
+        {rank}
+      </div>
+    );
   };
 
   if (loading) {
@@ -94,58 +151,69 @@ function Leaderboard() {
             </h1>
           </div>
 
-          <div className="cyber-card p-8 max-w-2xl">
-            <p className="text-cyber-blue text-[10px] font-black uppercase tracking-[0.25em] mb-4">
-              Pre-Competition View
-            </p>
-            <div className="text-5xl font-black text-cyber-green font-bytebounce mb-3">
-              {teams.length}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="cyber-card p-8 xl:col-span-1">
+              <p className="text-cyber-blue text-[10px] font-black uppercase tracking-[0.25em] mb-4">
+                Pre-Competition View
+              </p>
+              <div className="text-6xl md:text-7xl font-black text-cyber-green font-bytebounce leading-none mb-4">
+                {registeredTeams.length}
+              </div>
+              <p className="text-white/60 font-mono text-xs uppercase tracking-wide">
+                Registered Teams
+              </p>
             </div>
 
-            <div className="mt-6 border-t border-white/10 pt-5">
-              <p className="text-white/60 font-mono text-xs uppercase tracking-wide mb-3">
-                Click any team to view members.
-              </p>
+            <div className="cyber-card p-8 xl:col-span-2 min-h-[60vh]">
+              <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/10">
+                <p className="text-cyber-blue text-[10px] font-black uppercase tracking-[0.25em]">
+                  Team Directory
+                </p>
+                <p className="text-white/60 font-mono text-[10px] uppercase tracking-wide">
+                  Click any team to view members
+                </p>
+              </div>
 
-              {teams.length === 0 ? (
+              {registeredTeams.length === 0 ? (
                 <p className="text-white/40 font-mono text-xs uppercase tracking-wide">
                   No registered teams found.
                 </p>
               ) : (
-                <div className="space-y-2">
-                  {teams.map((team) => {
-                    const isExpanded = expandedTeamId === String(team.id);
+                <div className="space-y-3">
+                  {registeredTeams.map((team) => {
+                    const teamId = getTeamId(team);
+                    const isExpanded = expandedTeamId === teamId;
                     const memberNames = (team.members || [])
                       .map((member) => member?.username)
                       .filter(Boolean);
 
                     return (
-                      <div key={team.id} className="rounded-lg border border-white/10 bg-black/20">
+                      <div key={teamId} className="rounded-lg border border-white/10 bg-black/20 overflow-hidden">
                         <button
                           type="button"
-                          onClick={() => setExpandedTeamId(isExpanded ? null : String(team.id))}
-                          className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-white/5 transition-colors"
+                          onClick={() => setExpandedTeamId(isExpanded ? null : teamId)}
+                          className="w-full px-5 py-4 text-left flex items-center justify-between hover:bg-white/5 transition-colors"
                         >
-                          <span className="text-sm font-black uppercase tracking-wide text-white">
+                          <span className="text-base md:text-lg font-black uppercase tracking-wide text-white">
                             {team.name}
                           </span>
-                          <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-blue">
+                          <span className="text-[10px] md:text-xs font-mono uppercase tracking-widest text-cyber-blue">
                             {isExpanded ? 'Hide Members' : 'Show Members'}
                           </span>
                         </button>
 
                         {isExpanded && (
-                          <div className="px-4 pb-4 border-t border-white/10">
+                          <div className="px-5 pb-5 border-t border-white/10 bg-black/25">
                             {memberNames.length ? (
-                              <ul className="pt-3 space-y-1">
+                              <ul className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 {memberNames.map((name) => (
-                                  <li key={`${team.id}-${name}`} className="text-xs font-mono uppercase tracking-wide text-white/70">
+                                  <li key={`${teamId}-${name}`} className="text-xs font-mono uppercase tracking-wide text-white/70 bg-white/5 border border-white/10 rounded px-3 py-2">
                                     {name}
                                   </li>
                                 ))}
                               </ul>
                             ) : (
-                              <p className="pt-3 text-xs font-mono uppercase tracking-wide text-white/40">
+                              <p className="pt-4 text-xs font-mono uppercase tracking-wide text-white/40">
                                 No members available.
                               </p>
                             )}
@@ -216,17 +284,7 @@ function Leaderboard() {
                 (individualScorers || []).slice(0, 3).map((person) => (
                   <tr key={person.userId} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        {person.rank === 1 ? (
-                          <Trophy className="w-6 h-6 text-yellow-500 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
-                        ) : person.rank === 2 ? (
-                          <Medal className="w-6 h-6 text-gray-400 drop-shadow-[0_0_8px_rgba(156,163,175,0.5)]" />
-                        ) : person.rank === 3 ? (
-                          <Medal className="w-6 h-6 text-amber-600 drop-shadow-[0_0_8px_rgba(180,83,9,0.5)]" />
-                        ) : (
-                          <span className="text-white/50 font-black">{person.rank}</span>
-                        )}
-                      </div>
+                      {getRankBadge(person.rank)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-black text-white uppercase group-hover:text-cyber-blue transition-colors">
@@ -256,7 +314,7 @@ function Leaderboard() {
         </div>
 
         {isAdmin && (
-          <div className="cyber-card p-8 mb-10">
+          <div id="registered-teams-section" className="cyber-card p-8 mb-10">
             <p className="text-cyber-blue text-[10px] font-black uppercase tracking-[0.25em] mb-4">
               Admin View - Registered Teams
             </p>
@@ -276,16 +334,17 @@ function Leaderboard() {
               ) : (
                 <div className="space-y-2">
                   {registeredTeamsForAdmin.map((team) => {
-                    const isExpanded = expandedTeamId === String(team.id);
+                    const teamId = getTeamId(team);
+                    const isExpanded = expandedTeamId === teamId;
                     const memberNames = (team.members || [])
                       .map((member) => member?.username)
                       .filter(Boolean);
 
                     return (
-                      <div key={`admin-team-${team.id}`} className="rounded-lg border border-white/10 bg-black/20">
+                      <div key={`admin-team-${teamId}`} className="rounded-lg border border-white/10 bg-black/20">
                         <button
                           type="button"
-                          onClick={() => setExpandedTeamId(isExpanded ? null : String(team.id))}
+                          onClick={() => setExpandedTeamId(isExpanded ? null : teamId)}
                           className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-white/5 transition-colors"
                         >
                           <span className="text-sm font-black uppercase tracking-wide text-white">
@@ -301,7 +360,7 @@ function Leaderboard() {
                             {memberNames.length ? (
                               <ul className="pt-3 space-y-1">
                                 {memberNames.map((name) => (
-                                  <li key={`${team.id}-${name}`} className="text-xs font-mono uppercase tracking-wide text-white/70">
+                                  <li key={`${teamId}-${name}`} className="text-xs font-mono uppercase tracking-wide text-white/70">
                                     {name}
                                   </li>
                                 ))}
@@ -336,7 +395,7 @@ function Leaderboard() {
               {teams.map((team) => (
                 <tr key={team.id} className="hover:bg-white/5 transition-colors group">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">{getRankIcon(team.rank)}</div>
+                    {getRankBadge(team.rank)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Link to={`/graph?teamId=${team.id}`} className="block group/link">
