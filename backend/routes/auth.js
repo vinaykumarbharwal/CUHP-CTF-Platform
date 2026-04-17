@@ -3,8 +3,10 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const Team = require('../models/Team');
 const jwtConfig = require('../config/jwt');
 const emailService = require('../utils/emailService');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 const EMAIL_VERIFICATION_WINDOW_MS = 15 * 60 * 1000;
@@ -181,6 +183,107 @@ router.post('/login', [
     return res.json({
       token,
       user: { id: user._id, username: user.username, email: user.email, teamId: user.teamId, role: user.role }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.get('/profile', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password -emailVerificationToken -emailVerificationExpires');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const team = user.teamId ? await Team.findById(user.teamId).select('name').lean() : null;
+
+    return res.json({
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        teamId: user.teamId,
+        teamName: team?.name || null,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.put('/profile', [
+  auth,
+  body('username')
+    .optional()
+    .trim()
+    .isLength({ min: 3 })
+    .withMessage('Username must be at least 3 characters long.'),
+  body('password')
+    .optional()
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters long.'),
+  body('currentPassword')
+    .optional()
+    .notEmpty()
+    .withMessage('Current password is required when changing password.')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try {
+    const { username, password, currentPassword } = req.body;
+    const normalizedUsername = typeof username === 'string' ? username.trim() : '';
+    const hasUsernameUpdate = Boolean(normalizedUsername);
+    const hasPasswordUpdate = typeof password === 'string' && password.length > 0;
+
+    if (!hasUsernameUpdate && !hasPasswordUpdate) {
+      return res.status(400).json({ error: 'Provide username and/or password to update.' });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (hasUsernameUpdate && normalizedUsername !== user.username) {
+      const existingUser = await User.findOne({ username: normalizedUsername, _id: { $ne: user._id } });
+      if (existingUser) {
+        return res.status(400).json({ error: 'Username is already taken' });
+      }
+      user.username = normalizedUsername;
+    }
+
+    if (hasPasswordUpdate) {
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Current password is required to set a new password.' });
+      }
+
+      const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ error: 'Current password is incorrect.' });
+      }
+
+      user.password = password;
+    }
+
+    await user.save();
+    const team = user.teamId ? await Team.findById(user.teamId).select('name').lean() : null;
+
+    return res.json({
+      message: 'Profile updated successfully.',
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        teamId: user.teamId,
+        teamName: team?.name || null,
+        createdAt: user.createdAt
+      }
     });
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });

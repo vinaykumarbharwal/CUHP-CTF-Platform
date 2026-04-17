@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Challenges from './pages/Challenges';
 import Leaderboard from './pages/Leaderboard';
 import TeamGraph from './pages/TeamGraph';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/challenges" element={<PrivateRoute><Challenges /></PrivateRoute>} />
           <Route path="/leaderboard" element={<PrivateRoute><Leaderboard /></PrivateRoute>} />
           <Route path="/graph" element={<PrivateRoute><TeamGraph /></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </AuthProvider>

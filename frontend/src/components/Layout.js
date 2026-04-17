@@ -47,11 +47,11 @@ function Layout({ children }) {
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-6 shrink-0">
-              <div className="flex items-center space-x-2 sm:space-x-3 bg-white/5 px-2.5 sm:px-4 py-1.5 rounded-full border border-white/10 min-w-0">
+              <Link to="/profile" className="flex items-center space-x-2 sm:space-x-3 bg-white/5 px-2.5 sm:px-4 py-1.5 rounded-full border border-white/10 min-w-0 hover:border-cyber-green/40 transition-colors">
                 <div className="w-2 h-2 rounded-full bg-cyber-green animate-ping"></div>
                 <User className="h-4 w-4 text-cyber-green" />
                 <span className="text-xs sm:text-sm font-mono font-bold truncate max-w-[92px] sm:max-w-none">{user?.username}</span>
-              </div>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="group flex items-center px-2.5 sm:px-4 py-1.5 border border-red-500/50 text-[10px] sm:text-xs font-black uppercase tracking-widest rounded transition-all hover:bg-red-500 hover:text-white whitespace-nowrap"
