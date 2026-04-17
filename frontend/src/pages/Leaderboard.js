@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { Trophy, Medal } from 'lucide-react';
@@ -23,6 +23,10 @@ function Leaderboard() {
   const isAdmin = user?.role === 'admin';
   const showRegisteredTeamsView = !challengesUnlocked && !isAdmin;
   const isLive = Date.now() < COMPETITION_END_TIME;
+  const registeredTeamsForAdmin = useMemo(
+    () => [...(teams || [])].sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''))),
+    [teams]
+  );
 
   async function fetchLeaderboard() {
     try {
@@ -250,6 +254,73 @@ function Leaderboard() {
             </tbody>
           </table>
         </div>
+
+        {isAdmin && (
+          <div className="cyber-card p-8 mb-10">
+            <p className="text-cyber-blue text-[10px] font-black uppercase tracking-[0.25em] mb-4">
+              Admin View - Registered Teams
+            </p>
+            <div className="text-5xl font-black text-cyber-green font-bytebounce mb-3">
+              {registeredTeamsForAdmin.length}
+            </div>
+
+            <div className="mt-6 border-t border-white/10 pt-5">
+              <p className="text-white/60 font-mono text-xs uppercase tracking-wide mb-3">
+                Click any team to view members.
+              </p>
+
+              {registeredTeamsForAdmin.length === 0 ? (
+                <p className="text-white/40 font-mono text-xs uppercase tracking-wide">
+                  No registered teams found.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {registeredTeamsForAdmin.map((team) => {
+                    const isExpanded = expandedTeamId === String(team.id);
+                    const memberNames = (team.members || [])
+                      .map((member) => member?.username)
+                      .filter(Boolean);
+
+                    return (
+                      <div key={`admin-team-${team.id}`} className="rounded-lg border border-white/10 bg-black/20">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedTeamId(isExpanded ? null : String(team.id))}
+                          className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-white/5 transition-colors"
+                        >
+                          <span className="text-sm font-black uppercase tracking-wide text-white">
+                            {team.name}
+                          </span>
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-cyber-blue">
+                            {isExpanded ? 'Hide Members' : 'Show Members'}
+                          </span>
+                        </button>
+
+                        {isExpanded && (
+                          <div className="px-4 pb-4 border-t border-white/10">
+                            {memberNames.length ? (
+                              <ul className="pt-3 space-y-1">
+                                {memberNames.map((name) => (
+                                  <li key={`${team.id}-${name}`} className="text-xs font-mono uppercase tracking-wide text-white/70">
+                                    {name}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="pt-3 text-xs font-mono uppercase tracking-wide text-white/40">
+                                No members available.
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="cyber-glass rounded-xl overflow-hidden border border-white/10 shadow-2xl">
           <table className="min-w-full">
