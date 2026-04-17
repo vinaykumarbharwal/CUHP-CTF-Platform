@@ -35,10 +35,19 @@ function Leaderboard() {
   async function fetchLeaderboard() {
     try {
       if (showRegisteredTeamsView) {
-        const registeredTeamsResponse = await api.get('/leaderboard/registered-teams');
-        const teamsForRegistrationView = sortTeamsByName(
-          Array.isArray(registeredTeamsResponse.data) ? registeredTeamsResponse.data : []
-        );
+        let teamsForRegistrationView = [];
+
+        try {
+          const registeredTeamsResponse = await api.get('/leaderboard/registered-teams');
+          teamsForRegistrationView = sortTeamsByName(
+            Array.isArray(registeredTeamsResponse.data) ? registeredTeamsResponse.data : []
+          );
+        } catch (registeredTeamsError) {
+          const leaderboardResponse = await api.get('/leaderboard');
+          teamsForRegistrationView = sortTeamsByName(
+            Array.isArray(leaderboardResponse.data) ? leaderboardResponse.data : []
+          );
+        }
 
         setRegisteredTeams(teamsForRegistrationView);
         setTeams([]);
@@ -73,10 +82,23 @@ function Leaderboard() {
       }
 
       if (registeredTeamsResponse.status === 'fulfilled') {
-        const adminRegisteredTeams = sortTeamsByName(
+        const fromRegisteredEndpoint = sortTeamsByName(
           Array.isArray(registeredTeamsResponse.value.data) ? registeredTeamsResponse.value.data : []
         );
-        setRegisteredTeams(adminRegisteredTeams);
+
+        if (fromRegisteredEndpoint.length > 0 || !isAdmin) {
+          setRegisteredTeams(fromRegisteredEndpoint);
+        } else {
+          const fallbackTeams = leaderboardResponse.status === 'fulfilled'
+            ? sortTeamsByName(Array.isArray(leaderboardResponse.value.data) ? leaderboardResponse.value.data : [])
+            : [];
+          setRegisteredTeams(fallbackTeams);
+        }
+      } else if (isAdmin && leaderboardResponse.status === 'fulfilled') {
+        const fallbackTeams = sortTeamsByName(
+          Array.isArray(leaderboardResponse.value.data) ? leaderboardResponse.value.data : []
+        );
+        setRegisteredTeams(fallbackTeams);
       } else {
         setRegisteredTeams([]);
       }
