@@ -97,7 +97,7 @@ router.post('/register', [
     }
 
     return res.status(201).json({
-      message: 'Registration successful. Please check your email to verify your account.',
+      message: 'Registration successful. Please check your email to verify your account. Check SPAM folder if you do not see the email in inbox.',
       requiresEmailVerification: true
     });
   } catch (error) {
