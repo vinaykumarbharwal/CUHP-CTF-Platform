@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
         email: email.trim().toLowerCase(),
         password
       });
-      const message = response.data?.message || 'Registration successful. Please check your email.';
+      const message = response.data?.message || 'Registration successful. Please check your email to verify your account. Check SPAM folder if you do not see the email in inbox.';
       toast.success(message);
       return { success: true, message };
     } catch (error) {

@@ -33,7 +33,7 @@ function Register() {
     setIsSubmitting(false);
     if (result?.success) {
       setRegisteredEmail(cleanEmail);
-      setRegistrationMessage(result.message || 'Please check your email for the verification link.');
+      setRegistrationMessage(result.message || 'Registration successful. Please check your email to verify your account. Check SPAM folder if you do not see the email in inbox.');
     }
   };
 
@@ -65,7 +65,7 @@ function Register() {
 
           {registrationMessage ? (
             <div className="space-y-5 border border-cyber-green/30 bg-cyber-green/5 rounded-xl p-5">
-              <p className="text-cyber-green font-black uppercase tracking-wider text-sm">Please check your email</p>
+              <p className="text-cyber-green font-black uppercase tracking-wider text-sm">Registration successful</p>
               <p className="text-white/70 text-sm font-mono">{registrationMessage}</p>
               <p className="text-white/60 text-xs font-mono break-all">
                 Verification link sent to: <span className="text-cyber-green">{registeredEmail}</span>
