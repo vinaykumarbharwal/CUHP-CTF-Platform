@@ -5,6 +5,7 @@ import api from '../services/api';
 import { Trophy, LogOut } from 'lucide-react';
 import useAutoRefresh from '../hooks/useAutoRefresh';
 import { useAuth } from '../contexts/AuthContext';
+import { ChallengesSkeleton } from '../components/Skeletons/PageSkeletons';
 import {
   getChallengesReleaseDate,
   getTimeUntilChallengesUnlock,
@@ -117,6 +118,7 @@ function Challenges() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [challengeCooldowns, setChallengeCooldowns] = useState({});
   const [challengeFetchBlockedUntil, setChallengeFetchBlockedUntil] = useState(0);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [category, setCategory] = useState('All');
   const [solveFilter, setSolveFilter] = useState('Unsolved');
   const [showSolvedByList, setShowSolvedByList] = useState(false);
@@ -192,7 +194,11 @@ function Challenges() {
   };
 
   const refreshPageData = async () => {
-    await Promise.all([fetchTeam(), challengesUnlocked ? fetchChallenges() : Promise.resolve()]);
+    try {
+      await Promise.all([fetchTeam(), challengesUnlocked ? fetchChallenges() : Promise.resolve()]);
+    } finally {
+      setIsInitialLoading(false);
+    }
   };
 
   useAutoRefresh(refreshPageData, { intervalMs: 30000, runOnFocus: false });
@@ -378,7 +384,9 @@ function Challenges() {
           </div>
         )}
 
-        {!challengesUnlocked ? (
+        {isInitialLoading ? (
+          <ChallengesSkeleton />
+        ) : !challengesUnlocked ? (
           <div className="cyber-card p-8 border-cyber-blue/30 max-w-3xl mx-auto text-center">
             <p className="text-cyber-blue text-[10px] font-black uppercase tracking-[0.25em] mb-4">
               Challenges Locked

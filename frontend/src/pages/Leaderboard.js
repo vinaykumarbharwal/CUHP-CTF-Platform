@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { Trophy, Medal, Loader2 } from 'lucide-react';
+import { Trophy, Medal } from 'lucide-react';
 import AllTeamsProgressChart from '../components/Graph/AllTeamsProgressChart';
 import api from '../services/api';
 import useAutoRefresh from '../hooks/useAutoRefresh';
 import { useAuth } from '../contexts/AuthContext';
 import { hasChallengesUnlocked } from '../utils/constants';
+import { LeaderboardSkeleton } from '../components/Skeletons/PageSkeletons';
 
 const COMPETITION_END_TIME = new Date('2026-04-13T03:02:00').getTime();
 
@@ -62,9 +63,14 @@ function Leaderboard() {
   if (loading) {
     return (
       <Layout>
-        <div className="flex flex-col justify-center items-center h-96">
-          <Loader2 className="h-12 w-12 text-cyber-green animate-spin mb-4" />
-          <p className="text-cyber-green font-mono text-xs uppercase tracking-[0.3em] animate-pulse">Syncing Leaderboard...</p>
+        <div className="py-8">
+          <div className="flex items-center space-x-4 mb-10">
+            <div className="h-1 bg-cyber-green w-12 rounded-full shadow-[0_0_10px_rgba(0,255,65,0.5)]"></div>
+            <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
+              Leaderboard
+            </h1>
+          </div>
+          <LeaderboardSkeleton />
         </div>
       </Layout>
     );

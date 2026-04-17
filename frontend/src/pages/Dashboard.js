@@ -4,9 +4,11 @@ import { Trophy } from 'lucide-react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import useAutoRefresh from '../hooks/useAutoRefresh';
+import { DashboardSkeleton } from '../components/Skeletons/PageSkeletons';
 
 function Dashboard() {
   const [team, setTeam] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [teamName, setTeamName] = useState('');
@@ -20,6 +22,8 @@ function Dashboard() {
       if (error.response?.status !== 404) {
         console.error('Error fetching team:', error);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -107,7 +111,9 @@ function Dashboard() {
           </h1>
         </div>
 
-        {!team ? (
+        {loading && <DashboardSkeleton />}
+
+        {!loading && !team ? (
           <div className="cyber-card p-12 text-center max-w-2xl mx-auto border-dashed">
             <div className="inline-block p-4 rounded-full bg-cyber-green/10 mb-6">
               <Trophy className="h-12 w-12 text-cyber-green animate-bounce" />
@@ -125,7 +131,7 @@ function Dashboard() {
               </button>
             </div>
           </div>
-        ) : (
+        ) : !loading ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1 space-y-8">
               <div className="cyber-card p-6">
@@ -195,7 +201,7 @@ function Dashboard() {
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Modals */}

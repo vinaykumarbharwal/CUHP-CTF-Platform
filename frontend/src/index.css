@@ -16,6 +16,7 @@
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
+    text-rendering: optimizeLegibility;
   }
 
   code {
@@ -24,7 +25,56 @@
   }
 }
 
+@media (max-width: 768px) {
+  body {
+    /* Keep background visual size consistent on tall pages like Challenges. */
+    background-attachment: scroll;
+    background-size: 100vw auto;
+    background-position: center top;
+    background-repeat: repeat-y;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:root[data-performance-mode='low'] *,
+:root[data-performance-mode='low'] *::before,
+:root[data-performance-mode='low'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.08s !important;
+}
+
+:root[data-performance-mode='low'] body {
+  background-attachment: scroll;
+  background-size: 100vw auto;
+  background-position: center top;
+  background-repeat: repeat-y;
+}
+
+:root[data-performance-mode='low'] .cyber-glass,
+:root[data-performance-mode='low'] .cyber-card {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 @layer components {
+  .skeleton-block {
+    @apply bg-white/10;
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
+    background-size: 220% 100%;
+    animation: skeleton-shimmer 1.2s ease-in-out infinite;
+  }
+
   .cyber-glass {
     @apply bg-cyber-dark/60 backdrop-blur-md border border-white/10;
   }
@@ -43,6 +93,15 @@
 
   .font-bytebounce {
     font-family: 'ByteBounce', sans-serif;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
   }
 }
 
