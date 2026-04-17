@@ -17,3 +17,11 @@
         sync: false
       - key: EMAIL_VERIFICATION_URL
         sync: false
+      - key: EMAILJS_SERVICE_ID
+        sync: false
+      - key: EMAILJS_TEMPLATE_ID
+        sync: false
+      - key: EMAILJS_PUBLIC_KEY
+        sync: false
+      - key: EMAILJS_PRIVATE_KEY
+        sync: false
