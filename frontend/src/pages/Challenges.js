@@ -297,7 +297,7 @@ function Challenges() {
     return 'Attachment';
   }, [selectedChallenge]);
 
-  const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic'];
+  const categories = ['All', 'Web', 'Crypto', 'Binary', 'OSINT', 'Misc', 'Forensic', 'Reverse Engineering'];
   
   // Separate sample challenge from others
   const sampleChallenge = useMemo(() => {
