@@ -17,15 +17,8 @@ const TEAM_COLORS = [
 ];
 
 const numberFormatter = new Intl.NumberFormat('en-US');
-const GRAPH_START_MINUTES = 10 * 60;
-const GRAPH_END_MINUTES = 16 * 60;
 
 const toSeriesKey = (teamId) => `team_${teamId}`;
-
-const isWithinGraphTimeWindow = (date) => {
-  const totalMinutes = date.getHours() * 60 + date.getMinutes();
-  return totalMinutes >= GRAPH_START_MINUTES && totalMinutes <= GRAPH_END_MINUTES;
-};
 
 function ProgressTooltip({ active, payload, label }) {
   if (!active || !payload || payload.length === 0) {
@@ -65,7 +58,7 @@ const buildTimelineData = (seriesList) => {
     if (series.points && Array.isArray(series.points)) {
       series.points.forEach((point) => {
         const d = new Date(point.timestamp);
-        if (isValid(d) && isWithinGraphTimeWindow(d)) {
+        if (isValid(d)) {
           timestampSet.add(d.getTime());
         }
       });
@@ -87,7 +80,8 @@ const buildTimelineData = (seriesList) => {
     const pointsByTimestamp = series.points
       .map((point) => {
         const d = new Date(point.timestamp);
-        return [isValid(d) ? d.getTime() : null, point.score];
+        const score = Number(point.score);
+        return [isValid(d) ? d.getTime() : null, Number.isFinite(score) ? score : 0];
       })
       .filter(p => p[0] !== null)
       .sort((a, b) => a[0] - b[0]);
