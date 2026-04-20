@@ -280,7 +280,7 @@ function Leaderboard() {
                )}
             </div>
           </div>
-          <div className="bg-black/30 rounded-lg p-4 border border-white/5">
+          <div className="bg-[#f7f8fb] rounded-lg p-4 border border-slate-300">
             <AllTeamsProgressChart series={graphSeries} />
           </div>
         </div>
@@ -403,39 +403,43 @@ function Leaderboard() {
           </div>
         )}
 
-        <div className="cyber-glass rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+        <div className="cyber-glass rounded-xl overflow-hidden border border-cyber-green/20 shadow-[0_0_30px_rgba(0,255,65,0.08)]">
           <table className="min-w-full">
             <thead>
-              <tr className="bg-white/5 border-b border-white/10">
-                <th className="px-6 py-4 text-left text-xs font-black text-cyber-green uppercase tracking-[0.2em]">Rank</th>
-                <th className="px-6 py-4 text-left text-xs font-black text-cyber-green uppercase tracking-[0.2em]">Team Name</th>
-                <th className="px-6 py-4 text-left text-xs font-black text-cyber-green uppercase tracking-[0.2em]">Score</th>
-                <th className="px-6 py-4 text-left text-xs font-black text-cyber-green uppercase tracking-[0.2em]">Solved</th>
+              <tr className="border-b border-white/10 bg-black/30">
+                <th className="px-6 py-4 text-left text-lg font-black text-cyber-blue uppercase tracking-[0.2em]">Place</th>
+                <th className="px-6 py-4 text-left text-lg font-black text-cyber-blue uppercase tracking-[0.2em]">Team</th>
+                <th className="px-6 py-4 text-right text-lg font-black text-cyber-blue uppercase tracking-[0.2em]">Score</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5 font-mono">
-              {teams.map((team) => (
-                <tr key={team.id} className="hover:bg-white/5 transition-colors group">
+            <tbody>
+              {teams.map((team, index) => (
+                <tr
+                  key={team.id}
+                  className={`${index % 2 === 0 ? 'bg-black/25' : 'bg-black/15'} border-b border-white/10 hover:bg-cyber-blue/10 transition-colors`}
+                >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {getRankBadge(team.rank)}
+                    <div className="inline-flex items-center justify-center">
+                      {getRankBadge(team.rank)}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <Link to={`/graph?teamId=${team.id}`} className="block group/link">
-                      <div className="text-sm font-black text-white uppercase group-hover/link:text-cyber-green transition-colors flex items-center">
-                        {team.name}
-                        <div className="ml-2 w-1 h-1 rounded-full bg-cyber-green opacity-0 group-hover/link:opacity-100 transition-opacity shadow-[0_0_5px_#00ff41]"></div>
-                      </div>
+                    <Link to={`/graph?teamId=${team.id}`} className="text-xl font-black text-white/90 uppercase hover:text-cyber-green transition-colors tracking-wide">
+                      {team.name}
                     </Link>
                   </td>
-
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-xl font-black text-cyber-blue tracking-tighter">{team.totalScore}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-xs font-black text-white/50">{team.solvedCount} solves</div>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-2xl font-black text-cyber-green tracking-tight">
+                    {team.totalScore}
                   </td>
                 </tr>
               ))}
+              {teams.length === 0 && (
+                <tr>
+                  <td colSpan="3" className="px-6 py-8 text-center text-sm font-mono text-white/40 uppercase tracking-wide">
+                    No leaderboard data available yet
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

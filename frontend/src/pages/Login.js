@@ -56,7 +56,7 @@ function Login() {
               <div className="absolute inset-0 bg-cyber-green/20 blur-xl rounded-full animate-pulse"></div>
             </div>
             <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic font-bytebounce text-center">
-              CUHP <span className="text-cyber-green">CTF Platform</span>
+              <span className="tracking-[0.28em]">CUHP</span>{' '}<span className="text-cyber-green tracking-[0.28em]">CTF</span>
             </h2>
             <p className="mt-2 text-sm text-white/50 font-mono text-center uppercase">Sign in to start competing</p>
           </div>

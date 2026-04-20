@@ -93,7 +93,7 @@ const Landing = () => {
         <div className="flex items-center space-x-2">
           <Trophy className="text-cyber-green h-8 w-8" />
           <span className="text-2xl font-black italic tracking-tighter uppercase font-bytebounce">
-            CUHP <span className="text-cyber-green">CTF</span>
+            <span className="tracking-[0.28em]">CUHP</span>{' '}<span className="text-cyber-green tracking-[0.28em]">CTF</span>
           </span>
         </div>
         <div className="flex items-center space-x-6">
@@ -197,6 +197,19 @@ const Landing = () => {
               </Link>
             )}
           </div>
+
+          <div className="max-w-4xl mx-auto mt-10 cyber-glass border border-cyber-green/30 rounded-xl p-6 text-left">
+            <p className="text-cyber-green text-[10px] font-black uppercase tracking-[0.25em] mb-3">
+              Awards And Certificates
+            </p>
+            <div className="space-y-2 text-white/70 font-mono text-xs uppercase tracking-wide leading-relaxed">
+              <p>1st Winner: Memento + Certificate</p>
+              <p>2nd Winner: Memento + Certificate</p>
+              <p>3rd Winner: Memento + Certificate</p>
+              <p>Best Individual Scorer: Memento + Certificate</p>
+              <p>Participation Certificate Eligibility: Minimum 2000+ Points</p>
+            </div>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -243,7 +256,9 @@ const Landing = () => {
           <div>
             <div className="flex items-center justify-center md:justify-start space-x-2 mb-4">
               <Trophy className="text-cyber-green h-6 w-6" />
-              <span className="text-xl font-black uppercase italic font-bytebounce text-white/50">CUHP CTF</span>
+              <span className="text-xl font-black uppercase italic font-bytebounce text-white/50">
+                <span className="tracking-[0.28em]">CUHP</span>{' '}<span className="tracking-[0.28em]">CTF</span>
+              </span>
             </div>
             <p className="text-[10px] font-mono leading-relaxed uppercase">
               Central University of Himachal Pradesh <br />
@@ -255,7 +270,7 @@ const Landing = () => {
             Mode: Team Competition
           </div>
           <div className="text-[10px] font-mono uppercase">
-            © {new Date().getFullYear()} CUHP. <br />
+            © {new Date().getFullYear()} <span className="tracking-[0.28em]">CUHP</span>. <br />
             Built for practical cybersecurity learning.
           </div>
         </div>

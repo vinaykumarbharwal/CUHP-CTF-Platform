@@ -28,8 +28,8 @@ function Layout({ children }) {
                   <div className="absolute inset-0 bg-cyber-green/20 blur-lg rounded-full animate-pulse"></div>
                 </div>
                 <span className="ml-3 inline-flex items-center gap-2 text-lg sm:text-2xl font-black text-white tracking-[0.14em] uppercase italic group-hover:text-cyber-green transition-colors font-bytebounce truncate whitespace-nowrap">
-                  <span>CUHP</span>
-                  <span>CTF</span>
+                  <span className="tracking-[0.28em]">CUHP</span>
+                  <span className="tracking-[0.28em]">CTF</span>
                 </span>
               </div>
               <div className="hidden sm:ml-10 sm:flex sm:space-x-8">

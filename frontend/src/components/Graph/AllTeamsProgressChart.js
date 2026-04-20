@@ -4,21 +4,28 @@ import { format, isValid } from 'date-fns';
 import { Activity } from 'lucide-react';
 
 const TEAM_COLORS = [
-  '#2563EB',
-  '#DC2626',
-  '#16A34A',
-  '#D97706',
-  '#7C3AED',
-  '#0891B2',
-  '#DB2777',
-  '#0F766E',
-  '#9333EA',
-  '#65A30D'
+  '#e11d48',
+  '#db2777',
+  '#d946ef',
+  '#8b5cf6',
+  '#2563eb',
+  '#0891b2',
+  '#0f766e',
+  '#16a34a',
+  '#ca8a04',
+  '#f97316'
 ];
 
 const numberFormatter = new Intl.NumberFormat('en-US');
+const GRAPH_START_MINUTES = 10 * 60;
+const GRAPH_END_MINUTES = 16 * 60;
 
 const toSeriesKey = (teamId) => `team_${teamId}`;
+
+const isWithinGraphTimeWindow = (date) => {
+  const totalMinutes = date.getHours() * 60 + date.getMinutes();
+  return totalMinutes >= GRAPH_START_MINUTES && totalMinutes <= GRAPH_END_MINUTES;
+};
 
 function ProgressTooltip({ active, payload, label }) {
   if (!active || !payload || payload.length === 0) {
@@ -32,16 +39,16 @@ function ProgressTooltip({ active, payload, label }) {
   const dateLabel = isValid(new Date(label)) ? format(new Date(label), 'MMM dd, HH:mm') : 'Unknown Time';
 
   return (
-    <div className="rounded-xl border border-white/10 bg-black/90 backdrop-blur-md shadow-2xl p-3 min-w-52">
-      <p className="text-xs uppercase tracking-wide text-white/40 mb-2 font-mono">{dateLabel}</p>
+    <div className="rounded-md border border-slate-300 bg-white shadow-md p-3 min-w-52">
+      <p className="text-xs uppercase tracking-wide text-slate-500 mb-2 font-mono">{dateLabel}</p>
       <div className="space-y-1.5">
         {sortedPayload.map((entry) => (
           <div key={entry.dataKey} className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 min-w-0">
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-sm text-white/80 font-black uppercase tracking-tight truncate">{entry.name}</span>
+              <span className="text-sm text-slate-700 font-bold truncate">{entry.name}</span>
             </div>
-            <span className="text-sm font-black text-cyber-green">{numberFormatter.format(entry.value || 0)}</span>
+            <span className="text-sm font-bold text-slate-900">{numberFormatter.format(entry.value || 0)}</span>
           </div>
         ))}
       </div>
@@ -58,7 +65,7 @@ const buildTimelineData = (seriesList) => {
     if (series.points && Array.isArray(series.points)) {
       series.points.forEach((point) => {
         const d = new Date(point.timestamp);
-        if (isValid(d)) {
+        if (isValid(d) && isWithinGraphTimeWindow(d)) {
           timestampSet.add(d.getTime());
         }
       });
@@ -91,18 +98,18 @@ const buildTimelineData = (seriesList) => {
     }
 
     const firstTimestamp = pointsByTimestamp[0][0];
-    const lastTimestamp = pointsByTimestamp[pointsByTimestamp.length - 1][0];
-    let currentScore = 0; // Initialize with 0
-    const scoreByTimestamp = new Map(pointsByTimestamp);
+    let currentScore = 0;
+    let pointIndex = 0;
 
     timelineRows.forEach((row) => {
       if (row.timestamp < firstTimestamp) {
-        row[key] = 0; // Show 0 before first score
+        row[key] = 0;
         return;
       }
 
-      if (scoreByTimestamp.has(row.timestamp)) {
-        currentScore = scoreByTimestamp.get(row.timestamp);
+      while (pointIndex < pointsByTimestamp.length && pointsByTimestamp[pointIndex][0] <= row.timestamp) {
+        currentScore = pointsByTimestamp[pointIndex][1];
+        pointIndex += 1;
       }
 
       row[key] = currentScore;
@@ -121,22 +128,26 @@ function AllTeamsProgressChart({ series = [] }) {
     }))
   ), [series]);
 
-  const graphData = useMemo(() => buildTimelineData(normalizedSeries), [normalizedSeries]);
-
   const topTeams = useMemo(() => (
     [...normalizedSeries]
       .sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0))
       .slice(0, 5)
   ), [normalizedSeries]);
 
-  const highlightedTeamIds = useMemo(
-    () => new Set(topTeams.map((team) => team.teamId)),
-    [topTeams]
-  );
+  const graphData = useMemo(() => buildTimelineData(topTeams), [topTeams]);
+
+  const formatXAxisTick = (value) => {
+    const date = new Date(value);
+    if (!isValid(date)) return '';
+    if (date.getHours() === 0) {
+      return format(date, 'dd');
+    }
+    return format(date, 'HH:mm');
+  };
 
   if (!graphData.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-white/20">
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
          <Activity className="h-12 w-12 mb-3 stroke-1" />
          <p className="text-xs uppercase font-black tracking-[0.2em]">No performance data detected</p>
       </div>
@@ -145,26 +156,27 @@ function AllTeamsProgressChart({ series = [] }) {
 
   return (
     <>
-      <ResponsiveContainer width="100%" height={360}>
-        <LineChart data={graphData} margin={{ top: 16, right: 10, left: 0, bottom: 22 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#ffffff" strokeOpacity={0.05} vertical={false} />
+      <ResponsiveContainer width="100%" height={390}>
+        <LineChart data={graphData} margin={{ top: 8, right: 20, left: 8, bottom: 22 }}>
+          <CartesianGrid stroke="#dbe2ea" strokeDasharray="2 2" vertical={false} />
           <XAxis
             dataKey="timestamp"
             type="number"
             domain={['dataMin', 'dataMax']}
             padding={{ left: 0, right: 0 }}
             allowDataOverflow
-            tickFormatter={(value) => isValid(new Date(value)) ? format(new Date(value), 'HH:mm') : ''}
-            tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }}
+            tickFormatter={formatXAxisTick}
+            tick={{ fontSize: 12, fill: '#6b7280', fontWeight: 600 }}
             tickLine={false}
-            axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
-            minTickGap={40}
+            axisLine={{ stroke: '#9ca3af' }}
+            minTickGap={55}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }}
+            tick={{ fontSize: 12, fill: '#6b7280', fontWeight: 600 }}
             tickFormatter={(value) => numberFormatter.format(value)}
             tickLine={false}
-            axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+            axisLine={{ stroke: '#9ca3af' }}
+            domain={[0, 'auto']}
             width={60}
           />
           <Tooltip content={<ProgressTooltip />} />
@@ -172,18 +184,19 @@ function AllTeamsProgressChart({ series = [] }) {
             verticalAlign="bottom"
             align="left"
             iconType="circle"
-            wrapperStyle={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', paddingTop: '20px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}
+            wrapperStyle={{ fontSize: '12px', color: '#4b5563', paddingTop: '18px', fontWeight: 600 }}
           />
-          {normalizedSeries.map((team) => (
+          {topTeams.map((team) => (
             <Line
               key={team.teamId}
-              type="monotone"
+              type="stepAfter"
               dataKey={team.key}
               stroke={team.color}
-              strokeWidth={highlightedTeamIds.has(team.teamId) ? 3 : 1.5}
-              strokeOpacity={highlightedTeamIds.has(team.teamId) ? 1 : 0.3}
+              strokeWidth={2.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
               dot={false}
-              activeDot={{ r: 4, fill: team.color, stroke: '#fff', strokeWidth: 2 }}
+              activeDot={{ r: 4, fill: '#ffffff', stroke: team.color, strokeWidth: 2 }}
               name={team.teamName || team.name}
               connectNulls={true}
               animationDuration={1500}

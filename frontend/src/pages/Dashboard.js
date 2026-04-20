@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
-import { Trophy } from 'lucide-react';
+import { Trophy, Copy } from 'lucide-react';
 import Layout from '../components/Layout';
 import api from '../services/api';
 import useAutoRefresh from '../hooks/useAutoRefresh';
@@ -13,6 +13,7 @@ function Dashboard() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [teamName, setTeamName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
+  const [isCopyingInviteCode, setIsCopyingInviteCode] = useState(false);
 
   const fetchTeam = async () => {
     try {
@@ -101,6 +102,41 @@ function Dashboard() {
     };
   };
 
+  const copyInviteCode = async () => {
+    if (!team?.inviteCode) {
+      toast.error('Invite code is not available');
+      return;
+    }
+
+    try {
+      setIsCopyingInviteCode(true);
+
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(team.inviteCode);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = team.inviteCode;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const copied = document.execCommand('copy');
+        document.body.removeChild(textArea);
+
+        if (!copied) {
+          throw new Error('Copy command failed');
+        }
+      }
+
+      toast.success('Invite code copied!');
+    } catch (error) {
+      toast.error('Failed to copy invite code');
+    } finally {
+      setIsCopyingInviteCode(false);
+    }
+  };
+
   return (
     <Layout>
       <div className="py-8">
@@ -118,7 +154,7 @@ function Dashboard() {
             <div className="inline-block p-4 rounded-full bg-cyber-green/10 mb-6">
               <Trophy className="h-12 w-12 text-cyber-green animate-bounce" />
             </div>
-            <h2 className="text-3xl font-black mb-4 uppercase tracking-tight">Welcome to CUHP CTF!</h2>
+            <h2 className="text-3xl font-black mb-4 uppercase tracking-tight">Welcome to <span className="tracking-[0.28em]">CUHP</span> CTF!</h2>
             <p className="text-white/60 mb-10 font-mono text-sm max-w-md mx-auto">
               Create or join a team to start competing
             </p>
@@ -156,6 +192,17 @@ function Dashboard() {
                     <span className="text-xs text-white/30 block mb-2 font-black uppercase">Invite Code:</span>
                     <div className="bg-black/40 border border-cyber-green/20 rounded px-3 py-2 flex items-center justify-between group">
                       <code className="text-cyber-green font-bold">{team.inviteCode}</code>
+                      <button
+                        type="button"
+                        onClick={copyInviteCode}
+                        className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-cyber-green/80 hover:text-cyber-green transition-colors"
+                        aria-label="Copy invite code"
+                        title="Copy invite code"
+                        disabled={isCopyingInviteCode}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        {isCopyingInviteCode ? 'Copying' : 'Copy'}
+                      </button>
                     </div>
                   </div>
                 </div>
