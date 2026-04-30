@@ -34,7 +34,7 @@ const Landing = () => {
     timeStyle: 'short',
     timeZone: 'Asia/Kolkata'
   });
-  const registrationDeadline = new Date('2026-05-01T18:00:00+05:30');
+  const registrationDeadline = new Date('2026-05-01T17:59:00+05:30');
   const registrationDiffMs = registrationDeadline.getTime() - nowMs;
   const registrationTotalSeconds = Math.max(0, Math.floor(registrationDiffMs / 1000));
   const registrationCountdown = {
