@@ -154,7 +154,7 @@ function Register() {
     // </div>
     <div>
       <h1 className="text-3xl font-bold text-center mt-10">Registration is currently closed.</h1>
-      <p className="text-center text-gray-500 mt-4">Please check back later for updates.</p>
+      <p className="text-center text-cyber-green mt-4">Please check back later for updates.</p>
       <div className="text-center mt-6">
         <Link to="/" className="text-cyber-green hover:text-cyber-blue font-bold uppercase tracking-tighter transition-colors">
           Back to Home
