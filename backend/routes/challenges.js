@@ -11,11 +11,14 @@ const { hasChallengesUnlocked, getSecondsUntilChallengesUnlock } = require('../u
 
 router.get('/', auth, async (req, res) => {
   try {
-    if (!hasChallengesUnlocked() && req.userRole !== 'admin') {
+    const now = Date.now();
+    const COMPETITION_START = new Date('2026-05-08T10:00:00+05:30').getTime();
+    const COMPETITION_END = new Date('2026-05-08T16:00:00+05:30').getTime();
+    if ((now < COMPETITION_START || now > COMPETITION_END) && req.userRole !== 'admin') {
       return res.status(403).json({
-        error: 'Challenges will be visible on 08 May 2026 at 10:00 AM IST',
-        releaseAt: '2026-05-08T10:00:00+05:30',
-        retryAfterSeconds: getSecondsUntilChallengesUnlock()
+        error: 'Challenges are only visible between 08 May 2026, 10:00 AM and 4:00 PM IST',
+        openAt: '2026-05-08T10:00:00+05:30',
+        closeAt: '2026-05-08T16:00:00+05:30'
       });
     }
 
@@ -117,11 +120,14 @@ router.get('/', auth, async (req, res) => {
 
 router.get('/:id', auth, async (req, res) => {
   try {
-    if (!hasChallengesUnlocked() && req.userRole !== 'admin') {
+    const now = Date.now();
+    const COMPETITION_START = new Date('2026-05-08T10:00:00+05:30').getTime();
+    const COMPETITION_END = new Date('2026-05-08T16:00:00+05:30').getTime();
+    if ((now < COMPETITION_START || now > COMPETITION_END) && req.userRole !== 'admin') {
       return res.status(403).json({
-        error: 'Challenges will be visible on 08 May 2026 at 10:00 AM IST',
-        releaseAt: '2026-05-08T10:00:00+05:30',
-        retryAfterSeconds: getSecondsUntilChallengesUnlock()
+        error: 'Challenges are only visible between 08 May 2026, 10:00 AM and 4:00 PM IST',
+        openAt: '2026-05-08T10:00:00+05:30',
+        closeAt: '2026-05-08T16:00:00+05:30'
       });
     }
 

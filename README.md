@@ -1,115 +1,93 @@
 ﻿
 # CUHP CTF Platform
 
-## Introduction
-CUHP CTF Platform is a comprehensive web application designed to host and manage Capture The Flag (CTF) competitions for cybersecurity enthusiasts. It enables teams to register, solve challenges, submit flags, and track their progress in real time. Built for educational and competitive environments, the platform streamlines the entire CTF experience for both participants and administrators.
-
-CUHP CTF Platform is a full-stack Capture The Flag web application for team-based cybersecurity competitions.
-
-## Project Name
-CUHP-CTF-Platform
+## Overview
+CUHP CTF Platform is a full-stack web application for hosting and managing Capture The Flag (CTF) competitions. It supports team-based play, real-time scoring, challenge management, and a modern user experience for both participants and administrators.
 
 ## Features
-- JWT-based authentication (register/login)
-- Email verification on registration (EmailJS verification link required before login)
-- Team system (create team, join via invite code, max 2 members)
+- Secure authentication and email verification
+- Team creation and joining (invite code, max 2 members)
 - Challenge browsing by category and difficulty
-- Flag submission with rate limiting
-- Live leaderboard with tie-breaking
-- Leaderboard visibility lock (admin-only before challenge release)
-- Team score progression graph over time
-- Click to expand team rows and view member names on the leaderboard
-- Team progress insights with score breakdown and recent solves
+- Flag submission with rate limiting and cooldowns
+- Live leaderboard with tie-breaking and team details
+- Team score progression graph
+- Admin controls for challenge and leaderboard visibility
 
-## Tech Stack
-- Backend: Node.js, Express, MongoDB, Mongoose
-- Frontend: React 18, Tailwind CSS, Recharts
-- Tooling: npm workspaces, concurrently, nodemon, react-scripts
+## Technology Stack
+- **Backend:** Node.js, Express, MongoDB, Mongoose
+- **Frontend:** React 18, Tailwind CSS, Recharts
+- **Tooling:** npm workspaces, concurrently, nodemon, react-scripts
 
 ## Prerequisites
-- Node.js LTS
+- Node.js (LTS recommended)
 - npm
-- MongoDB (local service or Atlas)
+- MongoDB (local or Atlas)
 
 ## Environment Variables
 
-### Backend ([backend/.env](backend/.env))
-```env
-MONGODB_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/cuhp_ctf?retryWrites=true&w=majority
+### Backend (`backend/.env`)
+```
+MONGODB_URI=your_mongodb_atlas_uri
 MONGODB_LOCAL_URI=mongodb://127.0.0.1:27017/cuhp_ctf
 ALLOW_LOCAL_MONGO_FALLBACK=true
-JWT_SECRET=your_super_secret_jwt_key_change_this
+JWT_SECRET=your_jwt_secret
 ADMIN_USERNAME=admin
 ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=change_this_admin_password
+ADMIN_PASSWORD=your_admin_password
 FRONTEND_URL=http://localhost:3000
 EMAIL_VERIFICATION_URL=http://localhost:3000/verify-email
-EMAILJS_SERVICE_ID=service_xxxxxxx
-EMAILJS_TEMPLATE_ID=template_xxxxxxx
-EMAILJS_PUBLIC_KEY=public_xxxxxxxxxxxxx
-EMAILJS_PRIVATE_KEY=private_xxxxxxxxxxxxx
-# Optional alias if your setup uses this variable name:
-EMAILJS_ACCESS_TOKEN=private_xxxxxxxxxxxxx
+EMAILJS_SERVICE_ID=your_emailjs_service_id
+EMAILJS_TEMPLATE_ID=your_emailjs_template_id
+EMAILJS_PUBLIC_KEY=your_emailjs_public_key
+EMAILJS_PRIVATE_KEY=your_emailjs_private_key
 PORT=5000
 ```
 
-Email verification template params expected by backend:
-- `verification_link` (or `verification_url`) for the clickable verification URL
-- `to_email`, `to_name`, `username`, `email` for recipient personalization
+**Email verification template params:**
+- `verification_link` or `verification_url` (URL for verification)
+- `to_email`, `to_name`, `username`, `email` (recipient info)
 
-MongoDB Atlas quick setup:
-1. Create a cluster in MongoDB Atlas.
-2. Create a database user.
-3. Add your IP address (or 0.0.0.0/0 for testing) in Network Access.
-4. Copy the SRV connection string and replace `MONGODB_URI`.
-5. If you are developing locally without Atlas, leave `MONGODB_URI` empty and use the local fallback values above.
+**MongoDB Atlas setup:**
 
-### Frontend ([frontend/.env](frontend/.env))
-```env
+1. Create a cluster in MongoDB Atlas
+2. Create a database user
+3. Add your IP address in Network Access
+4. Copy the SRV connection string and set `MONGODB_URI`
+5. For local development, use `MONGODB_LOCAL_URI`
+
+
+### Frontend (`frontend/.env`)
+```
 REACT_APP_API_URL=http://localhost:5000/api
 ```
 
+
 ## Installation
 
-From project root:
-```bash
+From the project root:
+```
 npm install
 ```
-
-Or use workspace install script:
-```bash
+Or use the workspace install script:
+```
 npm run install:all
 ```
 
-## Run (Development)
+## Running the App (Development)
 
-Real-time reload is enabled by default in development:
-- Frontend uses React Fast Refresh.
-- Backend uses nodemon with legacy watch mode, so API changes auto-restart the server.
-
-### Option A: Run both from root
-```bash
+**Option 1: Run both frontend and backend together**
+```
 npm run dev
 ```
 
-Windows fallback if `npm` is not recognized:
-```powershell
-& "C:\Program Files\nodejs\npm.cmd" run dev
+**Option 2: Run separately**
+```
+cd backend && npm run dev
+cd frontend && npm start
 ```
 
-### Option B: Run separately
-```bash
-cd backend
-npm run dev
+## Seeding Initial Challenges
 ```
-
-```bash
-cd frontend
-npm start
-```
-
-## Seed Initial Challenges
-```bash
 npm run seed
 ```
 
@@ -117,24 +95,18 @@ npm run seed
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000/api
 
-## API Overview
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/verify-email?token=...`
-- `POST /api/teams/create`
-- `POST /api/teams/join`
-- `GET /api/teams/my/team`
-- `GET /api/challenges`
-- `POST /api/challenges` (admin only)
-- `PUT /api/challenges/:id` (admin only)
-- `DELETE /api/challenges/:id` (admin only)
-- `POST /api/submit`
-- `GET /api/leaderboard`
-- `GET /api/graph/my-team`
-- `GET /api/graph/team/:teamId`
-- `GET /api/graph/all-teams`
 
-For complete API details, see [docs/API.md](docs/API.md).
+
+## Project Structure
+```
+CUHP-CTF-Platform/
+├── backend/
+├── frontend/
+├── database/
+├── docs/
+├── docker/
+└── README.md
+```
 
 ## Project Structure
 ```text
@@ -147,39 +119,19 @@ CUHP-CTF-Platform/
 └── README.md
 ```
 
+
 ## Troubleshooting
-- MongoDB Atlas connection failed:
-	- Verify username/password in `MONGODB_URI`.
-	- Ensure the cluster allows your IP in Atlas Network Access.
-	- Confirm the database user has readWrite permissions.
-	- If `querySrv ECONNREFUSED` appears, try a non-SRV `mongodb://...` URI with explicit shard hosts.
-	- The backend falls back to `MONGODB_LOCAL_URI` when Atlas is unreachable and `ALLOW_LOCAL_MONGO_FALLBACK=true`.
-	- Start local MongoDB if using fallback (`mongod --dbpath <path>` or `brew services start mongodb-community`).
-- Frontend cannot reach backend:
-	- Ensure backend is running and `REACT_APP_API_URL` is correct.
-- Registration failed:
-	- Use a unique username and email.
-	- Password must be at least 6 characters.
-	- Check toast message for exact backend error.
-- Login shows "Invalid credentials":
-	- Ensure you are using the account email (not username) and correct password.
-	- If using older data, log in once after backend restart so legacy plaintext passwords are auto-upgraded.
-- Login says to verify email first:
-	- Open the verification link sent during registration, then log in again.
-	- If link expired, a new verification link is required (add a resend flow or have an admin reset the account).
-- Invalid/expired token:
-	- Clear localStorage in browser and login again.
-- Create Team runtime error (`Cannot read properties of undefined (reading '0')`):
-	- Pull latest frontend changes and hard refresh browser (`Ctrl+F5`).
-
-## Git Ignore
-The repository already ignores the main generated and local-only files, including:
-- `node_modules/`
-- `.env` files in root, backend, and frontend
-- build output folders such as `build/`, `dist/`, and `out/`
-- logs, caches, editor settings, and upload artifacts
-
-No `.gitignore` changes were needed for this update.
+- **MongoDB connection issues:**
+  - Check your URI, credentials, and IP whitelist in Atlas
+  - For local fallback, ensure MongoDB is running and `ALLOW_LOCAL_MONGO_FALLBACK=true`
+- **Frontend cannot reach backend:**
+  - Confirm backend is running and `REACT_APP_API_URL` is correct
+- **Registration or login issues:**
+  - Use a unique email and username
+  - Password must be at least 6 characters
+  - Check for email verification if required
+- **Other errors:**
+  - See browser console or backend logs for details
 
 ## License
 MIT
