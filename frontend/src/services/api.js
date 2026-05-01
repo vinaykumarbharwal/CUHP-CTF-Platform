@@ -39,7 +39,7 @@ api.interceptors.response.use(
       const requestUrl = String(error?.config?.url || '');
       const isAuthRequest =
         requestUrl.includes('/auth/login') ||
-        requestUrl.includes('/auth/register') ||
+        // requestUrl.includes('/auth/register') ||
         requestUrl.includes('/auth/verify-email');
 
       if (!isAuthRequest) {

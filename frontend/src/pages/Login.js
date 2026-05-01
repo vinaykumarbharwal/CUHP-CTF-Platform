@@ -107,12 +107,12 @@ function Login() {
           </form>
 
           <div className="mt-8 text-center border-t border-white/10 pt-6">
-            <p className="text-sm text-white/40">
+            {/* <p className="text-sm text-white/40">
               Don't have an account?{' '}
               <Link to="/register" className="text-cyber-green hover:text-cyber-blue font-bold uppercase tracking-tighter transition-colors">
                 Register
               </Link>
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

@@ -40,7 +40,7 @@ function getVerificationBaseUrl() {
     return 'https://cuhp-ctf-2026.vercel.app/verify-email';
   }
 
-  const frontendUrl = 'http://localhost:3000';
+  const frontendUrl = process.env.CORS_ORIGIN;
   return `${frontendUrl}/verify-email`;
 }
 
@@ -50,62 +50,62 @@ function buildVerificationLink(token) {
   return `${baseUrl}${separator}token=${encodeURIComponent(token)}`;
 }
 
-router.post('/register', [
-  body('username').isLength({ min: 3 }).trim(),
-  body('email')
-    .trim()
-    .toLowerCase()
-    .isEmail()
-    .withMessage('Please provide a valid email address.'),
-  body('password').isLength({ min: 6 })
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+// router.post('/register', [
+//   body('username').isLength({ min: 3 }).trim(),
+//   body('email')
+//     .trim()
+//     .toLowerCase()
+//     .isEmail()
+//     .withMessage('Please provide a valid email address.'),
+//   body('password').isLength({ min: 6 })
+// ], async (req, res) => {
+//   const errors = validationResult(req);
+//   if (!errors.isEmpty()) {
+//     return res.status(400).json({ errors: errors.array() });
+//   }
 
-  try {
-    const { username, email, password } = req.body;
+//   try {
+//     const { username, email, password } = req.body;
 
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-    if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
-    }
+//     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+//     if (existingUser) {
+//       return res.status(400).json({ error: 'User already exists' });
+//     }
 
-    const verificationToken = createVerificationToken();
-    const verificationTokenHash = hashVerificationToken(verificationToken);
-    const verificationLink = buildVerificationLink(verificationToken);
+//     const verificationToken = createVerificationToken();
+//     const verificationTokenHash = hashVerificationToken(verificationToken);
+//     const verificationLink = buildVerificationLink(verificationToken);
 
-    const user = new User({
-      username,
-      email,
-      password,
-      isEmailVerified: false,
-      emailVerificationToken: verificationTokenHash,
-      emailVerificationExpires: new Date(Date.now() + EMAIL_VERIFICATION_WINDOW_MS)
-    });
-    await user.save();
+//     const user = new User({
+//       username,
+//       email,
+//       password,
+//       isEmailVerified: false,
+//       emailVerificationToken: verificationTokenHash,
+//       emailVerificationExpires: new Date(Date.now() + EMAIL_VERIFICATION_WINDOW_MS)
+//     });
+//     await user.save();
 
-    try {
-      await emailService.sendVerificationEmail({
-        toEmail: user.email,
-        username: user.username,
-        verificationLink
-      });
-    } catch (error) {
-      console.error('Email verification send failed:', error);
-      await User.deleteOne({ _id: user._id });
-      return res.status(500).json({ error: 'Could not send verification email. Please try registering again.' });
-    }
+//     try {
+//       await emailService.sendVerificationEmail({
+//         toEmail: user.email,
+//         username: user.username,
+//         verificationLink
+//       });
+//     } catch (error) {
+//       console.error('Email verification send failed:', error);
+//       await User.deleteOne({ _id: user._id });
+//       return res.status(500).json({ error: 'Could not send verification email. Please try registering again.' });
+//     }
 
-    return res.status(201).json({
-      message: 'Registration successful. Please check your email to verify your account. Check SPAM folder if you do not see the email in inbox.',
-      requiresEmailVerification: true
-    });
-  } catch (error) {
-    return res.status(500).json({ error: 'Server error' });
-  }
-});
+//     return res.status(201).json({
+//       message: 'Registration successful. Please check your email to verify your account. Check SPAM folder if you do not see the email in inbox.',
+//       requiresEmailVerification: true
+//     });
+//   } catch (error) {
+//     return res.status(500).json({ error: 'Server error' });
+//   }
+// });
 
 router.get('/verify-email', async (req, res) => {
   const token = String(req.query.token || '').trim();
