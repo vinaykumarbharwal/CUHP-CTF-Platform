@@ -210,7 +210,6 @@ const Landing = () => {
               <p>2nd Winner: Memento + Certificate</p>
               <p>3rd Winner: Memento + Certificate</p>
               <p>Best Individual Scorer: Memento + Certificate</p>
-              <p>Participation Certificate Eligibility: Minimum 2000+ Points</p>
             </div>
           </div>
         </div>
