@@ -53,7 +53,7 @@ export const API_ENDPOINTS = {
   }
 };
 
-export const CHALLENGES_RELEASE_AT_ISO = '2026-05-08T10:00:00+05:30';
+export const CHALLENGES_RELEASE_AT_ISO = '2026-05-15T10:00:00+05:30';
 
 export const getChallengesReleaseDate = () => new Date(CHALLENGES_RELEASE_AT_ISO);
 

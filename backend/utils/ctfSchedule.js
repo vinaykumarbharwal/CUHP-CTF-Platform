@@ -1,4 +1,4 @@
-const CTF_RELEASE_DATE = new Date('2026-05-08T10:00:00+05:30');
+const CTF_RELEASE_DATE = new Date('2026-05-15T10:00:00+05:30');
 
 function getReleaseTimestamp() {
   return CTF_RELEASE_DATE.getTime();

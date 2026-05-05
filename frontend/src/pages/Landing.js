@@ -133,6 +133,9 @@ const Landing = () => {
             crypto, binary, forensics, and osint. Build skills, solve challenges,
             and climb the live leaderboard with your team.
           </p>
+          <p className="max-w-2xl mx-auto text-cyber-green/90 font-mono text-xs md:text-sm mb-8 uppercase tracking-wider">
+            Event Date: <span className="font-black text-cyber-green">{releaseDateText}</span>
+          </p>
           {!user && (
             <div className="max-w-3xl mx-auto mb-10 cyber-glass border border-yellow-400/30 rounded-xl p-6">
               <p className="text-yellow-400 text-[10px] font-black uppercase tracking-[0.25em] mb-3">
