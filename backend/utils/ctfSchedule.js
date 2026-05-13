@@ -1,4 +1,5 @@
 const CTF_RELEASE_DATE = new Date('2026-05-15T10:00:00+05:30');
+const CTF_CLOSE_DATE = new Date('2026-05-15T16:00:00+05:30');
 
 function getReleaseTimestamp() {
   return CTF_RELEASE_DATE.getTime();
@@ -18,6 +19,7 @@ function getSecondsUntilChallengesUnlock(now = Date.now()) {
 
 module.exports = {
   CTF_RELEASE_DATE,
+  CTF_CLOSE_DATE,
   hasChallengesUnlocked,
   getSecondsUntilChallengesUnlock
 };

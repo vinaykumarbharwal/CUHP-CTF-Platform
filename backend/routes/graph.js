@@ -26,13 +26,13 @@ async function buildTeamGraphData(teamId) {
 router.get('/team/:teamId', auth, async (req, res) => {
   try {
     const now = Date.now();
-    const COMPETITION_START = new Date('2026-05-08T10:00:00+05:30').getTime();
-    const COMPETITION_END = new Date('2026-05-08T16:00:00+05:30').getTime();
-    if ((now < COMPETITION_START || now > COMPETITION_END) && req.userRole !== 'admin') {
+    const COMPETITION_START = new Date('2026-05-15T10:00:00+05:30').getTime();
+    if (now < COMPETITION_START && req.userRole !== 'admin') {
       return res.status(403).json({
-        error: 'Graph is only available between 08 May 2026, 10:00 AM and 4:00 PM IST',
-        openAt: '2026-05-08T10:00:00+05:30',
-        closeAt: '2026-05-08T16:00:00+05:30'
+        error: 'Graph is only available from 15 May 2026, 10:00 AM IST',
+        openAt: '2026-05-15T10:00:00+05:30',
+        closeAt: '2026-05-15T16:00:00+05:30',
+        finalResultsAt: '2026-05-15T16:00:00+05:30'
       });
     }
     const { teamId } = req.params;
@@ -47,13 +47,13 @@ router.get('/team/:teamId', auth, async (req, res) => {
 router.get('/my-team', auth, async (req, res) => {
   try {
     const now = Date.now();
-    const COMPETITION_START = new Date('2026-05-08T10:00:00+05:30').getTime();
-    const COMPETITION_END = new Date('2026-05-08T16:00:00+05:30').getTime();
-    if ((now < COMPETITION_START || now > COMPETITION_END) && req.userRole !== 'admin') {
+    const COMPETITION_START = new Date('2026-05-15T10:00:00+05:30').getTime();
+    if (now < COMPETITION_START && req.userRole !== 'admin') {
       return res.status(403).json({
-        error: 'Graph is only available between 08 May 2026, 10:00 AM and 4:00 PM IST',
-        openAt: '2026-05-08T10:00:00+05:30',
-        closeAt: '2026-05-08T16:00:00+05:30'
+        error: 'Graph is only available from 15 May 2026, 10:00 AM IST',
+        openAt: '2026-05-15T10:00:00+05:30',
+        closeAt: '2026-05-15T16:00:00+05:30',
+        finalResultsAt: '2026-05-15T16:00:00+05:30'
       });
     }
     const user = await User.findById(req.userId);
@@ -71,13 +71,13 @@ router.get('/my-team', auth, async (req, res) => {
 router.get('/all-teams', auth, async (req, res) => {
   try {
     const now = Date.now();
-    const COMPETITION_START = new Date('2026-05-08T10:00:00+05:30').getTime();
-    const COMPETITION_END = new Date('2026-05-08T16:00:00+05:30').getTime();
-    if ((now < COMPETITION_START || now > COMPETITION_END) && req.userRole !== 'admin') {
+    const COMPETITION_START = new Date('2026-05-15T10:00:00+05:30').getTime();
+    if (now < COMPETITION_START && req.userRole !== 'admin') {
       return res.status(403).json({
-        error: 'Graph is only available between 08 May 2026, 10:00 AM and 4:00 PM IST',
-        openAt: '2026-05-08T10:00:00+05:30',
-        closeAt: '2026-05-08T16:00:00+05:30'
+        error: 'Graph is only available from 15 May 2026, 10:00 AM IST',
+        openAt: '2026-05-15T10:00:00+05:30',
+        closeAt: '2026-05-15T16:00:00+05:30',
+        finalResultsAt: '2026-05-15T16:00:00+05:30'
       });
     }
     // ...existing code...
