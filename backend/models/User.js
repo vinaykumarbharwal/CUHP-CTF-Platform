@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
@@ -38,6 +38,14 @@ const userSchema = new mongoose.Schema({
   teamId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Team',
+    default: null
+  },
+  activeSessionToken: {
+    type: String,
+    default: null
+  },
+  activeDeviceId: {
+    type: String,
     default: null
   },
   createdAt: {

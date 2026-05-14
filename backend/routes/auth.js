@@ -155,7 +155,7 @@ router.post('/login', [
   }
 
   try {
-    const { email, password } = req.body;
+    const { email, password, deviceId, force } = req.body;
     const normalizedEmail = String(email || '').trim().toLowerCase();
 
     const user = await User.findOne({
@@ -174,16 +174,46 @@ router.post('/login', [
       return res.status(403).json({ error: 'Please verify your email before logging in.' });
     }
 
+    if (!force && user.activeSessionToken && user.activeDeviceId && user.activeDeviceId !== deviceId) {
+      try {
+        jwt.verify(user.activeSessionToken, jwtConfig.secret);
+        return res.status(403).json({ 
+          error: 'You are already logged in on another device. Please logout from that device first.',
+          requiresForceLogin: true
+        });
+      } catch (err) {
+        // Token is invalid/expired, we can proceed to overwrite it
+      }
+    }
+
     const token = jwt.sign(
       { userId: user._id, username: user.username, role: user.role || 'user' },
       jwtConfig.secret,
       { expiresIn: jwtConfig.expiresIn }
     );
 
+    user.activeSessionToken = token;
+    user.activeDeviceId = deviceId;
+    await user.save();
+
     return res.json({
       token,
       user: { id: user._id, username: user.username, email: user.email, teamId: user.teamId, role: user.role }
     });
+  } catch (error) {
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+router.post('/logout', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (user) {
+      user.activeSessionToken = null;
+      user.activeDeviceId = null;
+      await user.save();
+    }
+    return res.json({ message: 'Logged out successfully' });
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });
   }

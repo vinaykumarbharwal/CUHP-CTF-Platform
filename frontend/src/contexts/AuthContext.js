@@ -1,4 +1,4 @@
-﻿import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 
@@ -46,11 +46,19 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email, password, forceLogin = false) => {
     try {
+      let deviceId = localStorage.getItem('deviceId');
+      if (!deviceId) {
+        deviceId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('deviceId', deviceId);
+      }
+
       const response = await api.post('/auth/login', {
         email: email.trim(),
-        password
+        password,
+        deviceId,
+        force: forceLogin
       });
       const { token: nextToken, user: nextUser } = response.data;
       localStorage.setItem('token', nextToken);
@@ -60,6 +68,9 @@ export const AuthProvider = ({ children }) => {
       toast.success('Login successful!');
       return true;
     } catch (error) {
+      if (error.response?.data?.requiresForceLogin) {
+        return 'requiresForceLogin';
+      }
       toast.error(getApiErrorMessage(error, 'Login failed'));
       return false;
     }
@@ -83,6 +94,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    if (token) {
+      api.post('/auth/logout').catch(() => {});
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setToken(null);

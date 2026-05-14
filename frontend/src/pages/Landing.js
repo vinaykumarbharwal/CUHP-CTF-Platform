@@ -212,6 +212,29 @@ const Landing = () => {
               <p>Best Individual Scorer: Memento + Certificate</p>
             </div>
           </div>
+
+          {user && (
+            <div className="max-w-4xl mx-auto mt-10 cyber-glass border border-red-500/30 rounded-xl p-6 text-left animate-in fade-in zoom-in duration-500">
+              <p className="text-red-400 text-[10px] font-black uppercase tracking-[0.25em] mb-4 flex items-center">
+                <span className="text-sm mr-2">📜</span> CTF Participation Rules
+              </p>
+              <div className="space-y-3 text-white/70 font-mono text-[11px] sm:text-xs uppercase tracking-wide leading-relaxed">
+                <p><span className="text-red-500 font-bold mr-2">1.</span> Flag sharing is not allowed between teams.</p>
+                <p><span className="text-red-500 font-bold mr-2">2.</span> Do not leave the venue without permission.</p>
+                <p><span className="text-red-500 font-bold mr-2">3.</span> Flag format: <code className="bg-black/40 px-2 py-1 rounded text-cyber-green font-bold border border-cyber-green/20">CUHP{'{...........}'}</code></p>
+                <p><span className="text-red-500 font-bold mr-2">4.</span> Attack only authorized targets. Do not attack other systems/sites.</p>
+                <p><span className="text-red-500 font-bold mr-2">5.</span> No submissions will be allowed after the deadline (4PM).</p>
+                <p><span className="text-red-500 font-bold mr-2">6.</span> Competition duration: 6 hours only.</p>
+                <p><span className="text-red-500 font-bold mr-2">7.</span> Do not discuss challenges or solutions with other teams.</p>
+                
+                <div className="mt-6 pt-4 border-t border-white/10">
+                  <p className="text-cyber-blue font-bold text-[10px] sm:text-xs tracking-[0.1em]">
+                    For any queries, contact the organizing team.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Stats Grid */}

@@ -11,8 +11,20 @@ function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailLocked, setEmailLocked] = useState(true);
   const [passwordLocked, setPasswordLocked] = useState(true);
+  const [showForceLogin, setShowForceLogin] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const handleForceLogin = async () => {
+    setIsSubmitting(true);
+    const success = await login(email.trim(), password.trim(), true);
+    setIsSubmitting(false);
+    if (success === true) {
+      navigate('/dashboard');
+    } else {
+      setShowForceLogin(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,10 +40,12 @@ function Login() {
     }
 
     setIsSubmitting(true);
-    const success = await login(trimmedEmail, trimmedPassword);
+    const result = await login(trimmedEmail, trimmedPassword);
     setIsSubmitting(false);
-    if (success) {
+    if (result === true) {
       navigate('/dashboard');
+    } else if (result === 'requiresForceLogin') {
+      setShowForceLogin(true);
     }
   };
 
@@ -61,7 +75,31 @@ function Login() {
             <p className="mt-2 text-sm text-white/50 font-mono text-center uppercase">Sign in to start competing</p>
           </div>
 
-          <form className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
+          {showForceLogin ? (
+            <div className="space-y-6 animate-in fade-in zoom-in duration-300">
+              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-6 text-center">
+                <p className="text-red-400 font-mono text-sm mb-6">
+                  You are already logged in on another device. Forcing a login will disconnect the other session.
+                </p>
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setShowForceLogin(false)}
+                    className="flex-1 py-3 text-xs border border-white/20 rounded text-white/70 hover:text-white hover:border-white/40 transition-colors uppercase tracking-widest font-black"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleForceLogin}
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 text-xs bg-red-500/20 text-red-500 border border-red-500/50 rounded hover:bg-red-500 hover:text-white transition-colors uppercase tracking-widest font-black disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Forcing...' : 'Force Login'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <form className="space-y-6" onSubmit={handleSubmit} autoComplete="off">
             <div>
               <label className="block text-xs font-black text-cyber-green uppercase tracking-widest mb-2 ml-1">
                 Email address
@@ -105,6 +143,7 @@ function Login() {
               </button>
             </div>
           </form>
+          )}
 
           <div className="mt-8 text-center border-t border-white/10 pt-6">
             {/* <p className="text-sm text-white/40">

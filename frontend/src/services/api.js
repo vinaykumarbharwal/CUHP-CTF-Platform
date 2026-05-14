@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const normalizeBaseUrl = (rawUrl) => {
@@ -46,7 +46,8 @@ api.interceptors.response.use(
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         window.location.href = '/login';
-        toast.error('Session expired. Please login again.');
+        const errorMessage = error.response?.data?.error || 'Session expired. Please login again.';
+        toast.error(errorMessage);
       }
     }
     return Promise.reject(error);

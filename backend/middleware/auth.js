@@ -1,7 +1,8 @@
-﻿const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const jwtConfig = require('../config/jwt');
+const User = require('../models/User');
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
@@ -10,6 +11,12 @@ module.exports = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, jwtConfig.secret);
+    
+    const user = await User.findById(decoded.userId);
+    if (!user || user.activeSessionToken !== token) {
+      return res.status(401).json({ error: 'Session expired. You have been logged out because of a login from another device.' });
+    }
+
     req.userId = decoded.userId;
     req.userRole = decoded.role || 'user';
     next();
