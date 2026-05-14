@@ -49,3 +49,5 @@ Agents.md
 # Challenge data with embedded flags
 backend/data/challenges.js
 backend/updateFinalDestinationChallenge.js
+CTF_Attendance_Sheet.csv
+backend/generate_attendance.js
