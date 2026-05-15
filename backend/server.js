@@ -30,14 +30,24 @@ async function reconcileTeamStatsFromSubmissions() {
           teamId: '$teamId',
           challengeId: '$challengeId'
         },
-        solvedAt: { $first: '$submittedAt' },
-        points: { $first: '$points' }
+        solvedAt: { $first: '$submittedAt' }
       }
+    },
+    {
+      $lookup: {
+        from: 'challenges',
+        localField: '_id.challengeId',
+        foreignField: '_id',
+        as: 'challenge'
+      }
+    },
+    {
+      $unwind: '$challenge'
     },
     {
       $group: {
         _id: '$_id.teamId',
-        totalScore: { $sum: '$points' },
+        totalScore: { $sum: '$challenge.points' },
         solvedChallenges: {
           $push: {
             challengeId: '$_id.challengeId',
