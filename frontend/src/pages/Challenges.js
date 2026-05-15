@@ -208,6 +208,11 @@ function Challenges() {
       return;
     }
 
+    if (isSelectedChallengeSolved) {
+      toast.error('This challenge is already solved by your team.');
+      return;
+    }
+
     const challengeId = selectedChallenge._id;
     const cooldownUntil = challengeCooldowns[challengeId] || 0;
     if (cooldownUntil > Date.now()) {
@@ -711,7 +716,7 @@ function Challenges() {
                 {isSelectedChallengeSolved && (
                   <div className="bg-cyber-green/10 border border-cyber-green/30 p-4 rounded-lg flex items-center space-x-3">
                      <Trophy className="text-cyber-green h-5 w-5" />
-                     <span className="text-cyber-green font-black uppercase text-xs tracking-widest">Already solved. You can submit again.</span>
+                     <span className="text-cyber-green font-black uppercase text-xs tracking-widest">Already solved by your team.</span>
                   </div>
                 )}
                 <div className="relative">
@@ -721,7 +726,7 @@ function Challenges() {
                     placeholder="CUHP{flag_here}"
                     value={flag}
                     onChange={(e) => setFlag(e.target.value)}
-                    disabled={isSubmitting || isSelectedChallengeCoolingDown}
+                    disabled={isSubmitting || isSelectedChallengeCoolingDown || isSelectedChallengeSolved}
                     className="cyber-input w-full font-mono border-cyber-blue/30 focus:border-cyber-blue"
                   />
                 </div>
@@ -737,7 +742,7 @@ function Challenges() {
                   }} className="w-full sm:flex-1 px-4 py-3 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
                   <button
                     type="submit"
-                    disabled={isSubmitting || isSelectedChallengeCoolingDown}
+                    disabled={isSubmitting || isSelectedChallengeCoolingDown || isSelectedChallengeSolved}
                     className="cyber-button w-full sm:flex-[2] py-3 text-sm border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSubmitting ? 'Submitting...' : 'Submit'}

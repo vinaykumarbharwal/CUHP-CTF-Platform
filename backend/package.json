@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "nodemon --legacy-watch server.js",
     "test": "node --test",
-    "backfill:submissions": "node backfillSubmissions.js"
+    "backfill:submissions": "node backfillSubmissions.js",
+    "dedupe:correct-submissions": "node dedupe-correct-submissions.js"
   },
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",

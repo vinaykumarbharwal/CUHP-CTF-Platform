@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
+const jwt = require('jsonwebtoken');
 
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret';
 
@@ -147,6 +148,49 @@ test('login allows users without explicit verification flag (legacy accounts)', 
     assert.equal(response.status, 200);
     assert.equal(typeof response.body.token, 'string');
     assert.equal(response.body.user.username, 'legacy');
+  } finally {
+    User.findOne = originalFindOne;
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test('login allows the same user from multiple devices', async () => {
+  const originalFindOne = User.findOne;
+  const userId = '507f1f77bcf86cd799439033';
+
+  User.findOne = async () => ({
+    _id: userId,
+    username: 'multi',
+    email: 'multi@gmail.com',
+    teamId: null,
+    role: 'user',
+    isEmailVerified: true,
+    comparePassword: async () => true
+  });
+
+  const app = createApp();
+  const server = app.listen(0);
+
+  try {
+    const firstResponse = await requestJson(server, 'POST', '/api/auth/login', {
+      body: {
+        email: 'multi@gmail.com',
+        password: 'secret123'
+      }
+    });
+    const secondResponse = await requestJson(server, 'POST', '/api/auth/login', {
+      body: {
+        email: 'multi@gmail.com',
+        password: 'secret123'
+      }
+    });
+
+    assert.equal(firstResponse.status, 200);
+    assert.equal(secondResponse.status, 200);
+    assert.equal(typeof firstResponse.body.token, 'string');
+    assert.equal(typeof secondResponse.body.token, 'string');
+    assert.equal(jwt.decode(firstResponse.body.token).sessionId, undefined);
+    assert.equal(jwt.decode(secondResponse.body.token).sessionId, undefined);
   } finally {
     User.findOne = originalFindOne;
     await new Promise((resolve) => server.close(resolve));

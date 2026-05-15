@@ -28,6 +28,14 @@ const submitLimiter = rateLimit({
   legacyHeaders: false
 });
 
+function isDuplicateCorrectSubmissionError(error) {
+  return error?.code === 11000;
+}
+
+async function getCurrentTeamScore(teamId, fallbackScore = 0) {
+  const refreshedTeam = await Team.findById(teamId).select('totalScore').lean();
+  return refreshedTeam?.totalScore ?? fallbackScore;
+}
 
 router.post('/', [auth, submitLimiter], async (req, res) => {
   try {
@@ -100,24 +108,17 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
     }
 
     const isCorrect = flag === challenge.flag;
-    
-    // Check if this challenge was already solved (for points calculation)
-    const existingCorrectSubmission = await Submission.findOne({
-      teamId: team._id,
-      challengeId: challenge._id,
-      isCorrect: true
-    });
-
-    const submission = new Submission({
-      teamId: team._id,
-      submittedBy: user._id,
-      challengeId: challenge._id,
-      points: (isCorrect && !existingCorrectSubmission) ? challenge.points : 0,
-      isCorrect
-    });
-    await submission.save();
 
     if (!isCorrect) {
+      const submission = new Submission({
+        teamId: team._id,
+        submittedBy: user._id,
+        challengeId: challenge._id,
+        points: 0,
+        isCorrect: false
+      });
+      await submission.save();
+
       const attemptsAfterThisSubmit = incorrectAttempts + 1;
       if (attemptsAfterThisSubmit >= INCORRECT_FLAG_LIMIT) {
         return res.status(429).json({
@@ -135,47 +136,83 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
       });
     }
 
-    // Atomic update to prevent race conditions and duplicate points
-    // Only add points if this is the first correct solve by this team
-    let updatedTeam;
-    if (!existingCorrectSubmission) {
-      updatedTeam = await Team.findOneAndUpdate(
-        { 
-          _id: team._id, 
-          'solvedChallenges.challengeId': { $ne: challenge._id } 
-        },
-        {
-          $addToSet: { 
-            solvedChallenges: { 
-              challengeId: challenge._id, 
-              solvedAt: new Date() 
-            } 
-          },
-          $inc: { totalScore: challenge.points }
-        },
-        { new: true }
-      );
-    } else {
-      // Challenge was already solved, just fetch current team state
-      updatedTeam = await Team.findById(team._id);
+    const existingCorrectSubmission = await Submission.findOne({
+      teamId: team._id,
+      challengeId: challenge._id,
+      isCorrect: true
+    })
+      .select('_id')
+      .lean();
+
+    if (existingCorrectSubmission) {
+      return res.json({
+        success: true,
+        message: 'Already solved by your team!',
+        alreadySolved: true,
+        points: 0,
+        totalScore: await getCurrentTeamScore(team._id, team.totalScore)
+      });
     }
 
-    // If updatedTeam is null, it means it was already solved by someone else in the team 
-    // between our check and update. We should still return success but use the current 
-    // total score from the database.
+    const solvedAt = new Date();
+    const submission = new Submission({
+      teamId: team._id,
+      submittedBy: user._id,
+      challengeId: challenge._id,
+      points: challenge.points,
+      isCorrect: true,
+      submittedAt: solvedAt
+    });
+
+    try {
+      await submission.save();
+    } catch (error) {
+      if (!isDuplicateCorrectSubmissionError(error)) {
+        throw error;
+      }
+
+      return res.json({
+        success: true,
+        message: 'Already solved by your team!',
+        alreadySolved: true,
+        points: 0,
+        totalScore: await getCurrentTeamScore(team._id, team.totalScore)
+      });
+    }
+
+    // Atomic update to prevent race conditions and duplicate points
+    // Only add points if this is the first correct solve by this team
+    const updatedTeam = await Team.findOneAndUpdate(
+      { 
+        _id: team._id, 
+        'solvedChallenges.challengeId': { $ne: challenge._id } 
+      },
+      {
+        $addToSet: { 
+          solvedChallenges: { 
+            challengeId: challenge._id, 
+            solvedAt 
+          } 
+        },
+        $inc: { totalScore: challenge.points }
+      },
+      { new: true }
+    );
+
+    // If updatedTeam is null, the team cache already had this solve. The saved submission
+    // remains the source of truth for solved filters and score reconciliation.
     let finalScore;
     if (updatedTeam) {
       finalScore = updatedTeam.totalScore;
     } else {
-      const refreshedTeam = await Team.findById(team._id).select('totalScore').lean();
-      finalScore = refreshedTeam?.totalScore || team.totalScore;
+      finalScore = await getCurrentTeamScore(team._id, team.totalScore);
     }
 
     return res.json({
       success: true,
-      message: existingCorrectSubmission ? 'Already solved by your team!' : 'Correct flag!',
-      alreadySolved: !!existingCorrectSubmission,
-      points: existingCorrectSubmission ? 0 : challenge.points,
+      message: 'Correct flag!',
+      alreadySolved: false,
+      points: challenge.points,
       totalScore: finalScore
     });
   } catch (error) {

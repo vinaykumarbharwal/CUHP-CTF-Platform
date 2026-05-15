@@ -8,6 +8,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret';
 const createApp = require('../app');
 const Team = require('../models/Team');
 const Submission = require('../models/Submission');
+const User = require('../models/User');
 
 function requestJson(server, method, path, { token } = {}) {
   return new Promise((resolve, reject) => {
@@ -44,7 +45,12 @@ function requestJson(server, method, path, { token } = {}) {
 test('leaderboard returns registered teams for non-admin before challenge date', async () => {
   const originalDateNow = Date.now;
   const originalTeamFind = Team.find;
+  const originalUserFindById = User.findById;
   Date.now = () => new Date('2026-04-01T00:00:00.000Z').getTime();
+  User.findById = async () => ({
+    _id: '507f1f77bcf86cd799439011',
+    role: 'user'
+  });
 
   Team.find = () => ({
     populate() {
@@ -77,6 +83,7 @@ test('leaderboard returns registered teams for non-admin before challenge date',
     assert.equal(response.body[0].solvedCount, 0);
   } finally {
     Team.find = originalTeamFind;
+    User.findById = originalUserFindById;
     Date.now = originalDateNow;
     await new Promise((resolve) => server.close(resolve));
   }
@@ -86,7 +93,12 @@ test('leaderboard is available for admin before challenge date', async () => {
   const originalDateNow = Date.now;
   const originalTeamFind = Team.find;
   const originalSubmissionAggregate = Submission.aggregate;
+  const originalUserFindById = User.findById;
   Date.now = () => new Date('2026-04-01T00:00:00.000Z').getTime();
+  User.findById = async () => ({
+    _id: '507f1f77bcf86cd799439012',
+    role: 'admin'
+  });
 
   Team.find = () => ({
     populate() {
@@ -113,6 +125,7 @@ test('leaderboard is available for admin before challenge date', async () => {
   } finally {
     Team.find = originalTeamFind;
     Submission.aggregate = originalSubmissionAggregate;
+    User.findById = originalUserFindById;
     Date.now = originalDateNow;
     await new Promise((resolve) => server.close(resolve));
   }
