@@ -345,10 +345,11 @@ function Challenges() {
 
     // Filter by Solve Status
     result = result.filter((challenge) => {
+      const isActuallySolved = challenge.solvedByTeam || solvedChallengeIds.has(String(challenge._id));
       if (solveFilter === 'Solved') {
-        return isSolved(challenge);
+        return isActuallySolved;
       }
-      return !isSolved(challenge);
+      return !isActuallySolved;
     });
 
     // Sort by Points (High to Low)
