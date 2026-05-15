@@ -8,7 +8,7 @@ function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const showRegisteredTeamsLabel = !hasChallengesUnlocked() && user?.role !== 'admin';
-  const canViewLeaderboard = true;
+  const canViewLeaderboard = user?.role === 'admin';
 
   const handleLogout = () => {
     logout();
@@ -61,7 +61,7 @@ function Layout({ children }) {
               </button>
             </div>
           </div>
-            <div className="sm:hidden grid grid-cols-3 gap-2 pb-1">
+            <div className={`sm:hidden grid ${canViewLeaderboard ? 'grid-cols-3' : 'grid-cols-2'} gap-2 pb-1`}>
               <Link to="/dashboard" className="inline-flex justify-center items-center py-2 border border-white/10 rounded text-[10px] font-black uppercase tracking-wider text-white/70 hover:text-cyber-green hover:border-cyber-green/40 transition-colors">
                 Dashboard
               </Link>
