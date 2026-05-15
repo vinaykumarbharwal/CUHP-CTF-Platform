@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 const Team = require('../models/Team');
 const Submission = require('../models/Submission');
 const { hasChallengesUnlocked } = require('../utils/ctfSchedule');
 
-router.get('/registered-teams', auth, async (req, res) => {
+router.get('/registered-teams', [auth, admin], async (req, res) => {
   try {
     const teams = await Team.find({})
       .populate('members', 'username')
@@ -29,7 +30,7 @@ router.get('/registered-teams', auth, async (req, res) => {
   }
 });
 
-router.get('/', auth, async (req, res) => {
+router.get('/', [auth, admin], async (req, res) => {
   try {
     if (!hasChallengesUnlocked() && req.userRole !== 'admin') {
       const teams = await Team.find({})
@@ -121,7 +122,7 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-router.get('/individual/top-scorers', auth, async (req, res) => {
+router.get('/individual/top-scorers', [auth, admin], async (req, res) => {
   try {
     if (!hasChallengesUnlocked() && req.userRole !== 'admin') {
       return res.json([]);

@@ -42,7 +42,7 @@ function requestJson(server, method, path, { token } = {}) {
   });
 }
 
-test('leaderboard returns registered teams for non-admin before challenge date', async () => {
+test('leaderboard rejects non-admin users', async () => {
   const originalDateNow = Date.now;
   const originalTeamFind = Team.find;
   const originalUserFindById = User.findById;
@@ -76,11 +76,8 @@ test('leaderboard returns registered teams for non-admin before challenge date',
 
   try {
     const response = await requestJson(server, 'GET', '/api/leaderboard', { token });
-    assert.equal(response.status, 200);
-    assert.equal(Array.isArray(response.body), true);
-    assert.equal(response.body[0].name, 'alpha');
-    assert.equal(response.body[0].totalScore, 0);
-    assert.equal(response.body[0].solvedCount, 0);
+    assert.equal(response.status, 403);
+    assert.equal(response.body.error, 'Admin access required');
   } finally {
     Team.find = originalTeamFind;
     User.findById = originalUserFindById;
