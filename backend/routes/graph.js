@@ -31,8 +31,8 @@ router.get('/team/:teamId', auth, async (req, res) => {
       return res.status(403).json({
         error: 'Graph is only available from 15 May 2026, 10:00 AM IST',
         openAt: '2026-05-15T10:00:00+05:30',
-        closeAt: '2026-05-15T16:00:00+05:30',
-        finalResultsAt: '2026-05-15T16:00:00+05:30'
+        closeAt: '2026-05-15T17:15:00+05:30',
+        finalResultsAt: '2026-05-15T17:15:00+05:30'
       });
     }
     const { teamId } = req.params;
@@ -52,8 +52,8 @@ router.get('/my-team', auth, async (req, res) => {
       return res.status(403).json({
         error: 'Graph is only available from 15 May 2026, 10:00 AM IST',
         openAt: '2026-05-15T10:00:00+05:30',
-        closeAt: '2026-05-15T16:00:00+05:30',
-        finalResultsAt: '2026-05-15T16:00:00+05:30'
+        closeAt: '2026-05-15T17:15:00+05:30',
+        finalResultsAt: '2026-05-15T17:15:00+05:30'
       });
     }
     const user = await User.findById(req.userId);
@@ -76,8 +76,8 @@ router.get('/all-teams', auth, async (req, res) => {
       return res.status(403).json({
         error: 'Graph is only available from 15 May 2026, 10:00 AM IST',
         openAt: '2026-05-15T10:00:00+05:30',
-        closeAt: '2026-05-15T16:00:00+05:30',
-        finalResultsAt: '2026-05-15T16:00:00+05:30'
+        closeAt: '2026-05-15T17:15:00+05:30',
+        finalResultsAt: '2026-05-15T17:15:00+05:30'
       });
     }
     // ...existing code...
