@@ -25,7 +25,7 @@ async function attachMemberSubmissionStats(teamDoc) {
   const team = teamDoc?.toObject ? teamDoc.toObject() : teamDoc;
   if (!team) return team;
 
-  const teamObjectId = typeof team._id === 'string' ? new mongoose.Types.ObjectId(team._id) : team._id;
+  const teamObjectId = new mongoose.Types.ObjectId(team._id.toString());
 
   const stats = await Submission.aggregate([
     {
@@ -39,7 +39,7 @@ async function attachMemberSubmissionStats(teamDoc) {
         _id: '$submittedBy',
         points: {
           $sum: {
-            $cond: [{ $eq: ['$isCorrect', true] }, '$points', 0]
+            $cond: [{ $eq: ['$isCorrect', true] }, { $ifNull: ['$points', 0] }, 0]
           }
         },
         submissions: {
@@ -71,7 +71,7 @@ async function attachMemberSubmissionStats(teamDoc) {
     {
       $group: {
         _id: null,
-        points: { $sum: '$points' },
+        points: { $sum: { $ifNull: ['$points', 0] } },
         submissions: { $sum: 1 }
       }
     }
@@ -89,7 +89,7 @@ async function attachMemberSubmissionStats(teamDoc) {
         totalAttempts: { $sum: 1 },
         totalScoreFromSubmissions: {
           $sum: {
-            $cond: [{ $eq: ['$isCorrect', true] }, '$points', 0]
+            $cond: [{ $eq: ['$isCorrect', true] }, { $ifNull: ['$points', 0] }, 0]
           }
         },
         successfulSubmissions: {
@@ -131,18 +131,18 @@ async function attachMemberSubmissionStats(teamDoc) {
     {
       $unwind: {
         path: '$challenge',
-        preserveNullAndEmptyArrays: false
+        preserveNullAndEmptyArrays: true
       }
     },
     {
       $project: {
         _id: 0,
         challengeId: {
-          _id: '$challenge._id',
-          title: '$challenge.title',
-          category: '$challenge.category',
-          difficulty: '$challenge.difficulty',
-          points: '$challenge.points'
+          _id: { $ifNull: ['$challenge._id', '$_id'] },
+          title: { $ifNull: ['$challenge.title', 'Unknown Challenge'] },
+          category: { $ifNull: ['$challenge.category', 'Misc'] },
+          difficulty: { $ifNull: ['$challenge.difficulty', 'Medium'] },
+          points: { $ifNull: ['$challenge.points', 0] }
         },
         solvedAt: 1
       }
