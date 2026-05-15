@@ -41,6 +41,14 @@ const userSchema = new mongoose.Schema({
     default: null
   },
 
+  sessionId: {
+    type: String,
+    default: null
+  },
+  sessionExpiresAt: {
+    type: Date,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

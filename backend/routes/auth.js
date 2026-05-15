@@ -174,8 +174,30 @@ router.post('/login', [
       return res.status(403).json({ error: 'Please verify your email before logging in.' });
     }
 
+    const now = new Date();
+    if (user.sessionId && user.sessionExpiresAt && user.sessionExpiresAt > now) {
+      return res.status(403).json({ error: 'Already logged in on another device. Please logout from the device where already logged in.' });
+    }
+
+    const sessionId = crypto.randomBytes(16).toString('hex');
+    user.sessionId = sessionId;
+    
+    // Set session expiration based on JWT config
+    let expiresInMs = 7 * 24 * 60 * 60 * 1000; // Default 7 days
+    const expireMatch = String(jwtConfig.expiresIn).match(/^(\d+)([smhd])$/);
+    if (expireMatch) {
+      const val = parseInt(expireMatch[1]);
+      const unit = expireMatch[2];
+      if (unit === 's') expiresInMs = val * 1000;
+      else if (unit === 'm') expiresInMs = val * 60 * 1000;
+      else if (unit === 'h') expiresInMs = val * 60 * 60 * 1000;
+      else if (unit === 'd') expiresInMs = val * 24 * 60 * 60 * 1000;
+    }
+    user.sessionExpiresAt = new Date(Date.now() + expiresInMs);
+    await user.save();
+
     const token = jwt.sign(
-      { userId: user._id, username: user.username, role: user.role || 'user' },
+      { userId: user._id, username: user.username, role: user.role || 'user', sessionId },
       jwtConfig.secret,
       { expiresIn: jwtConfig.expiresIn }
     );
@@ -191,6 +213,12 @@ router.post('/login', [
 
 router.post('/logout', auth, async (req, res) => {
   try {
+    const user = await User.findById(req.userId);
+    if (user) {
+      user.sessionId = null;
+      user.sessionExpiresAt = null;
+      await user.save();
+    }
     return res.json({ message: 'Logged out successfully' });
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });

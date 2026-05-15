@@ -17,6 +17,10 @@ module.exports = async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid token.' });
     }
 
+    if (user.sessionId && decoded.sessionId !== user.sessionId) {
+      return res.status(401).json({ error: 'Session expired or logged in from another device.' });
+    }
+
     req.userId = decoded.userId;
     req.userRole = decoded.role || 'user';
     next();
