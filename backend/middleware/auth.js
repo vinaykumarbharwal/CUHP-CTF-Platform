@@ -13,8 +13,8 @@ module.exports = async (req, res, next) => {
     const decoded = jwt.verify(token, jwtConfig.secret);
     
     const user = await User.findById(decoded.userId);
-    if (!user || user.activeSessionToken !== token) {
-      return res.status(401).json({ error: 'Session expired. You have been logged out because of a login from another device.' });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid token.' });
     }
 
     req.userId = decoded.userId;

@@ -40,14 +40,7 @@ const userSchema = new mongoose.Schema({
     ref: 'Team',
     default: null
   },
-  activeSessionToken: {
-    type: String,
-    default: null
-  },
-  activeDeviceId: {
-    type: String,
-    default: null
-  },
+
   createdAt: {
     type: Date,
     default: Date.now
