@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Team = require('../models/Team');
@@ -57,12 +57,23 @@ router.get('/', auth, async (req, res) => {
         {
           $match: {
             isCorrect: true,
-            teamId: { $ne: null }
+            teamId: { $ne: null },
+            challengeId: { $ne: null }
           }
         },
         {
           $group: {
-            _id: '$teamId',
+            _id: {
+              teamId: '$teamId',
+              challengeId: '$challengeId'
+            },
+            points: { $first: '$points' },
+            submittedAt: { $min: '$submittedAt' }
+          }
+        },
+        {
+          $group: {
+            _id: '$_id.teamId',
             totalScore: { $sum: '$points' },
             solvedCount: { $sum: 1 },
             earliestSubmission: { $min: '$submittedAt' }
@@ -120,12 +131,23 @@ router.get('/individual/top-scorers', auth, async (req, res) => {
       {
         $match: {
           isCorrect: true,
-          submittedBy: { $ne: null }
+          submittedBy: { $ne: null },
+          challengeId: { $ne: null }
         }
       },
       {
         $group: {
-          _id: '$submittedBy',
+          _id: {
+            userId: '$submittedBy',
+            challengeId: '$challengeId'
+          },
+          points: { $first: '$points' },
+          submittedAt: { $min: '$submittedAt' }
+        }
+      },
+      {
+        $group: {
+          _id: '$_id.userId',
           totalScore: { $sum: '$points' },
           solvedCount: { $sum: 1 },
           earliestSubmission: { $min: '$submittedAt' }

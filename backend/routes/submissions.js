@@ -112,7 +112,7 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
       teamId: team._id,
       submittedBy: user._id,
       challengeId: challenge._id,
-      points: isCorrect ? challenge.points : 0,
+      points: (isCorrect && !existingCorrectSubmission) ? challenge.points : 0,
       isCorrect
     });
     await submission.save();

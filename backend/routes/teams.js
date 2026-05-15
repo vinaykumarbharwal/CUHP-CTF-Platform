@@ -84,24 +84,44 @@ async function attachMemberSubmissionStats(teamDoc) {
       }
     },
     {
-      $group: {
-        _id: null,
-        totalAttempts: { $sum: 1 },
-        totalScoreFromSubmissions: {
-          $sum: {
-            $cond: [{ $eq: ['$isCorrect', true] }, { $ifNull: ['$points', 0] }, 0]
+      $facet: {
+        totalStats: [
+          {
+            $group: {
+              _id: null,
+              totalAttempts: { $sum: 1 },
+              failedSubmissions: {
+                $sum: { $cond: [{ $eq: ['$isCorrect', false] }, 1, 0] }
+              }
+            }
           }
-        },
-        successfulSubmissions: {
-          $sum: {
-            $cond: [{ $eq: ['$isCorrect', true] }, 1, 0]
+        ],
+        uniqueSolves: [
+          {
+            $match: { isCorrect: true }
+          },
+          {
+            $group: {
+              _id: '$challengeId',
+              points: { $first: '$points' }
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              successfulSubmissions: { $sum: 1 },
+              totalScoreFromSubmissions: { $sum: '$points' }
+            }
           }
-        },
-        failedSubmissions: {
-          $sum: {
-            $cond: [{ $eq: ['$isCorrect', false] }, 1, 0]
-          }
-        }
+        ]
+      }
+    },
+    {
+      $project: {
+        totalAttempts: { $ifNull: [{ $arrayElemAt: ['$totalStats.totalAttempts', 0] }, 0] },
+        failedSubmissions: { $ifNull: [{ $arrayElemAt: ['$totalStats.failedSubmissions', 0] }, 0] },
+        successfulSubmissions: { $ifNull: [{ $arrayElemAt: ['$uniqueSolves.successfulSubmissions', 0] }, 0] },
+        totalScoreFromSubmissions: { $ifNull: [{ $arrayElemAt: ['$uniqueSolves.totalScoreFromSubmissions', 0] }, 0] }
       }
     }
   ]);
