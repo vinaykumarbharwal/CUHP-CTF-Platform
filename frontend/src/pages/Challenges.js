@@ -264,22 +264,29 @@ function Challenges() {
     }
   };
 
+  const normalizeChallengeId = (value) => {
+    if (!value) {
+      return null;
+    }
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (typeof value === 'object' && value._id) {
+      return String(value._id);
+    }
+    return String(value);
+  };
+
   const solvedChallengeIds = useMemo(() => {
     const solvedList = team?.solvedChallenges || [];
     return new Set(
       solvedList
-        .map((sc) => {
-          const rawId = sc?.challengeId;
-          if (!rawId) {
-            return null;
-          }
-          return typeof rawId === 'string' ? rawId : rawId._id;
-        })
+        .map((sc) => normalizeChallengeId(sc?.challengeId))
         .filter(Boolean)
     );
   }, [team]);
 
-  const isSolved = (challengeId) => solvedChallengeIds.has(challengeId);
+  const isSolved = (challengeId) => solvedChallengeIds.has(String(challengeId));
 
   const isSelectedChallengeSolved = selectedChallenge ? isSolved(selectedChallenge._id) : false;
   const isSelectedChallengeCoolingDown =
