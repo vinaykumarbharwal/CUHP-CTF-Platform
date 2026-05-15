@@ -1,6 +1,7 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const mongoose = require('mongoose');
 const auth = require('../middleware/auth');
 const Team = require('../models/Team');
 const User = require('../models/User');
@@ -24,10 +25,12 @@ async function attachMemberSubmissionStats(teamDoc) {
   const team = teamDoc?.toObject ? teamDoc.toObject() : teamDoc;
   if (!team) return team;
 
+  const teamObjectId = typeof team._id === 'string' ? new mongoose.Types.ObjectId(team._id) : team._id;
+
   const stats = await Submission.aggregate([
     {
       $match: {
-        teamId: team._id,
+        teamId: teamObjectId,
         submittedBy: { $ne: null }
       }
     },
@@ -57,7 +60,7 @@ async function attachMemberSubmissionStats(teamDoc) {
   const unattributed = await Submission.aggregate([
     {
       $match: {
-        teamId: team._id,
+        teamId: teamObjectId,
         $or: [
           { submittedBy: null },
           { submittedBy: { $exists: false } }
@@ -77,7 +80,7 @@ async function attachMemberSubmissionStats(teamDoc) {
   const teamTotals = await Submission.aggregate([
     {
       $match: {
-        teamId: team._id
+        teamId: teamObjectId
       }
     },
     {
@@ -106,7 +109,7 @@ async function attachMemberSubmissionStats(teamDoc) {
   const solvedChallenges = await Submission.aggregate([
     {
       $match: {
-        teamId: team._id,
+        teamId: teamObjectId,
         isCorrect: true,
         challengeId: { $ne: null }
       }

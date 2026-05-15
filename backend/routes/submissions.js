@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
 const auth = require('../middleware/auth');
@@ -99,11 +99,13 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
       });
     }
 
-    const alreadySolved = team.solvedChallenges.some(
-      (sc) => sc.challengeId.toString() === challengeId
-    );
-
-    if (alreadySolved) {
+    const existingSubmission = await Submission.findOne({
+      teamId: team._id,
+      challengeId: challenge._id,
+      isCorrect: true
+    });
+    
+    if (existingSubmission) {
       return res.status(400).json({ error: 'Challenge already solved by your team' });
     }
 
@@ -136,18 +138,40 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
       });
     }
 
-    team.solvedChallenges.push({
-      challengeId: challenge._id,
-      solvedAt: new Date()
-    });
-    team.totalScore += challenge.points;
-    await team.save();
+    // Atomic update to prevent race conditions and duplicate points
+    const updatedTeam = await Team.findOneAndUpdate(
+      { 
+        _id: team._id, 
+        'solvedChallenges.challengeId': { $ne: challenge._id } 
+      },
+      {
+        $addToSet: { 
+          solvedChallenges: { 
+            challengeId: challenge._id, 
+            solvedAt: new Date() 
+          } 
+        },
+        $inc: { totalScore: challenge.points }
+      },
+      { new: true }
+    );
+
+    // If updatedTeam is null, it means it was already solved by someone else in the team 
+    // between our check and update. We should still return success but use the current 
+    // total score from the database.
+    let finalScore;
+    if (updatedTeam) {
+      finalScore = updatedTeam.totalScore;
+    } else {
+      const refreshedTeam = await Team.findById(team._id).select('totalScore').lean();
+      finalScore = refreshedTeam?.totalScore || team.totalScore;
+    }
 
     return res.json({
       success: true,
       message: 'Correct flag!',
       points: challenge.points,
-      totalScore: team.totalScore
+      totalScore: finalScore
     });
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });
