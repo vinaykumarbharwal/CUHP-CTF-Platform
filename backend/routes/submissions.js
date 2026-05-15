@@ -99,17 +99,14 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
       });
     }
 
-    const existingSubmission = await Submission.findOne({
+    const isCorrect = flag === challenge.flag;
+    
+    // Check if this challenge was already solved (for points calculation)
+    const existingCorrectSubmission = await Submission.findOne({
       teamId: team._id,
       challengeId: challenge._id,
       isCorrect: true
     });
-    
-    if (existingSubmission) {
-      return res.status(400).json({ error: 'Challenge already solved by your team' });
-    }
-
-    const isCorrect = flag === challenge.flag;
 
     const submission = new Submission({
       teamId: team._id,
@@ -139,22 +136,29 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
     }
 
     // Atomic update to prevent race conditions and duplicate points
-    const updatedTeam = await Team.findOneAndUpdate(
-      { 
-        _id: team._id, 
-        'solvedChallenges.challengeId': { $ne: challenge._id } 
-      },
-      {
-        $addToSet: { 
-          solvedChallenges: { 
-            challengeId: challenge._id, 
-            solvedAt: new Date() 
-          } 
+    // Only add points if this is the first correct solve by this team
+    let updatedTeam;
+    if (!existingCorrectSubmission) {
+      updatedTeam = await Team.findOneAndUpdate(
+        { 
+          _id: team._id, 
+          'solvedChallenges.challengeId': { $ne: challenge._id } 
         },
-        $inc: { totalScore: challenge.points }
-      },
-      { new: true }
-    );
+        {
+          $addToSet: { 
+            solvedChallenges: { 
+              challengeId: challenge._id, 
+              solvedAt: new Date() 
+            } 
+          },
+          $inc: { totalScore: challenge.points }
+        },
+        { new: true }
+      );
+    } else {
+      // Challenge was already solved, just fetch current team state
+      updatedTeam = await Team.findById(team._id);
+    }
 
     // If updatedTeam is null, it means it was already solved by someone else in the team 
     // between our check and update. We should still return success but use the current 

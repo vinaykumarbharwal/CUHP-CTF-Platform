@@ -679,50 +679,49 @@ function Challenges() {
             </div>
 
             <div className="space-y-6">
-              {isSelectedChallengeSolved ? (
-                <div className="bg-cyber-green/10 border border-cyber-green/30 p-4 rounded-lg flex items-center space-x-3">
-                   <Trophy className="text-cyber-green h-5 w-5" />
-                   <span className="text-cyber-green font-black uppercase text-xs tracking-widest">This challenge is already solved by your team.</span>
+              <form
+                className="space-y-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  submitFlag();
+                }}
+              >
+                {isSelectedChallengeSolved && (
+                  <div className="bg-cyber-green/10 border border-cyber-green/30 p-4 rounded-lg flex items-center space-x-3">
+                     <Trophy className="text-cyber-green h-5 w-5" />
+                     <span className="text-cyber-green font-black uppercase text-xs tracking-widest">Already solved. You can submit again.</span>
+                  </div>
+                )}
+                <div className="relative">
+                  <label className="block text-[10px] font-black text-cyber-blue uppercase tracking-widest mb-2 ml-1">Flag (CUHP{"{...}"})</label>
+                  <input
+                    type="text"
+                    placeholder="CUHP{flag_here}"
+                    value={flag}
+                    onChange={(e) => setFlag(e.target.value)}
+                    disabled={isSubmitting || isSelectedChallengeCoolingDown}
+                    className="cyber-input w-full font-mono border-cyber-blue/30 focus:border-cyber-blue"
+                  />
                 </div>
-              ) : (
-                <form
-                  className="space-y-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    submitFlag();
-                  }}
-                >
-                  <div className="relative">
-                    <label className="block text-[10px] font-black text-cyber-blue uppercase tracking-widest mb-2 ml-1">Flag (CUHP{"{...}"})</label>
-                    <input
-                      type="text"
-                      placeholder="CUHP{flag_here}"
-                      value={flag}
-                      onChange={(e) => setFlag(e.target.value)}
-                      disabled={isSubmitting || isSelectedChallengeCoolingDown}
-                      className="cyber-input w-full font-mono border-cyber-blue/30 focus:border-cyber-blue"
-                    />
-                  </div>
-                  {isSelectedChallengeCoolingDown && (
-                    <p className="text-[10px] font-black uppercase tracking-widest text-red-400">
-                      Too many attempts on this challenge. Please try a little later.
-                    </p>
-                  )}
-                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                    <button type="button" onClick={() => {
-                      setSelectedChallenge(null);
-                      setShowSolvedByList(false);
-                    }} className="w-full sm:flex-1 px-4 py-3 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || isSelectedChallengeCoolingDown}
-                      className="cyber-button w-full sm:flex-[2] py-3 text-sm border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Submit'}
-                    </button>
-                  </div>
-                </form>
-              )}
+                {isSelectedChallengeCoolingDown && (
+                  <p className="text-[10px] font-black uppercase tracking-widest text-red-400">
+                    Too many attempts on this challenge. Please try a little later.
+                  </p>
+                )}
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                  <button type="button" onClick={() => {
+                    setSelectedChallenge(null);
+                    setShowSolvedByList(false);
+                  }} className="w-full sm:flex-1 px-4 py-3 text-xs font-black uppercase text-white/50 hover:text-white transition-colors">Cancel</button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || isSelectedChallengeCoolingDown}
+                    className="cyber-button w-full sm:flex-[2] py-3 text-sm border-cyber-blue text-cyber-blue hover:bg-cyber-blue hover:text-black disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
