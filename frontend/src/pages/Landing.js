@@ -224,8 +224,8 @@ const Landing = () => {
               <p><span className="text-red-500 font-bold mr-2">2.</span> Do not leave the venue without permission.</p>
               <p><span className="text-red-500 font-bold mr-2">3.</span> Flag format: <code className="bg-black/40 px-2 py-1 rounded text-cyber-green font-bold border border-cyber-green/20">CUHP{'{...........}'}</code></p>
               <p><span className="text-red-500 font-bold mr-2">4.</span> Attack only authorized targets. Do not attack other systems/sites.</p>
-              <p><span className="text-red-500 font-bold mr-2">5.</span> No submissions will be allowed after the deadline (4PM).</p>
-              <p><span className="text-red-500 font-bold mr-2">6.</span> Competition duration: 6 hours only.</p>
+              <p><span className="text-red-500 font-bold mr-2">5.</span> No submissions will be allowed after the deadline (5:15PM).</p>
+              <p><span className="text-red-500 font-bold mr-2">6.</span> Competition duration: 7 hours 15 minutes only.</p>
               <p><span className="text-red-500 font-bold mr-2">7.</span> Do not discuss challenges or solutions with other teams.</p>
               
               <div className="mt-6 pt-4 border-t border-white/10">
