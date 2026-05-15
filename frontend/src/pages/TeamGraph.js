@@ -90,7 +90,8 @@ function TeamGraph() {
     Binary: '#f59e0b',
     OSINT: '#22c55e',
     Misc: '#84cc16',
-    Forensic: '#ef4444'
+    Forensic: '#ef4444',
+    'Reverse Engineering': '#f59e0b'
   };
 
   const solvedCategoryCounts = (team.solvedChallenges || []).reduce((acc, solved) => {

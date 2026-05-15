@@ -12,13 +12,13 @@ const { hasChallengesUnlocked, getSecondsUntilChallengesUnlock } = require('../u
 router.get('/', auth, async (req, res) => {
   try {
     const now = Date.now();
-    const COMPETITION_START = new Date('2026-05-15T10:00:00+05:30').getTime();
-    const COMPETITION_END = new Date('2026-05-15T16:00:00+05:30').getTime();
+    const COMPETITION_START = require('../utils/ctfSchedule').CTF_RELEASE_DATE.getTime();
+    const COMPETITION_END = require('../utils/ctfSchedule').CTF_CLOSE_DATE.getTime();
     if ((now < COMPETITION_START || now > COMPETITION_END) && req.userRole !== 'admin') {
       return res.status(403).json({
-        error: 'Challenges are only visible between 15 May 2026, 10:00 AM and 4:00 PM IST',
-        openAt: '2026-05-15T10:00:00+05:30',
-        closeAt: '2026-05-15T16:00:00+05:30'
+        error: `Challenges are only visible between ${require('../utils/ctfSchedule').CTF_RELEASE_DATE.toLocaleString('en-IN')} and ${require('../utils/ctfSchedule').CTF_CLOSE_DATE.toLocaleString('en-IN')} IST`,
+        openAt: require('../utils/ctfSchedule').CTF_RELEASE_DATE.toISOString(),
+        closeAt: require('../utils/ctfSchedule').CTF_CLOSE_DATE.toISOString()
       });
     }
 
@@ -108,7 +108,8 @@ router.get('/', auth, async (req, res) => {
         ...challenge,
         solvedByTeams,
         solvedCount: solvedByTeams.length,
-        firstBlood: firstSolverUsername || null
+        firstBlood: firstSolverUsername || null,
+        solvedByTeam: user.teamId ? solvedByTeams.includes(teamNameMap[String(user.teamId)]) : false
       };
     });
 
@@ -121,13 +122,13 @@ router.get('/', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const now = Date.now();
-    const COMPETITION_START = new Date('2026-05-15T10:00:00+05:30').getTime();
-    const COMPETITION_END = new Date('2026-05-15T16:00:00+05:30').getTime();
+    const COMPETITION_START = require('../utils/ctfSchedule').CTF_RELEASE_DATE.getTime();
+    const COMPETITION_END = require('../utils/ctfSchedule').CTF_CLOSE_DATE.getTime();
     if ((now < COMPETITION_START || now > COMPETITION_END) && req.userRole !== 'admin') {
       return res.status(403).json({
-        error: 'Challenges are only visible between 15 May 2026, 10:00 AM and 4:00 PM IST',
-        openAt: '2026-05-15T10:00:00+05:30',
-        closeAt: '2026-05-15T16:00:00+05:30'
+        error: `Challenges are only visible between ${require('../utils/ctfSchedule').CTF_RELEASE_DATE.toLocaleString('en-IN')} and ${require('../utils/ctfSchedule').CTF_CLOSE_DATE.toLocaleString('en-IN')} IST`,
+        openAt: require('../utils/ctfSchedule').CTF_RELEASE_DATE.toISOString(),
+        closeAt: require('../utils/ctfSchedule').CTF_CLOSE_DATE.toISOString()
       });
     }
 
@@ -135,7 +136,17 @@ router.get('/:id', auth, async (req, res) => {
     if (!challenge) {
       return res.status(404).json({ error: 'Challenge not found' });
     }
-    return res.json(challenge);
+    const user = await User.findById(req.userId);
+    const hasSolved = await Submission.exists({
+      challengeId: challenge._id,
+      teamId: user?.teamId,
+      isCorrect: true
+    });
+
+    const challengeObj = challenge.toObject();
+    challengeObj.solvedByTeam = !!hasSolved;
+
+    return res.json(challengeObj);
   } catch (error) {
     return res.status(500).json({ error: 'Server error' });
   }

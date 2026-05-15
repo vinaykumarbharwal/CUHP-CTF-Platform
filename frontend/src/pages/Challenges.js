@@ -229,7 +229,11 @@ function Challenges() {
         flag: trimmedFlag
       });
       playCorrectFlagAudio();
-      toast.success(`Correct! +${response.data.points} points`);
+      if (response.data.alreadySolved) {
+        toast.success('Correct! (Already solved by your team)');
+      } else {
+        toast.success(`Correct! +${response.data.points} points`);
+      }
       setChallengeCooldowns((prev) => {
         const next = { ...prev };
         delete next[challengeId];
@@ -286,9 +290,19 @@ function Challenges() {
     );
   }, [team]);
 
-  const isSolved = (challengeId) => solvedChallengeIds.has(String(challengeId));
+  const isSolved = (challengeIdOrObj) => {
+    if (!challengeIdOrObj) return false;
+    
+    // If we passed the whole challenge object, check its backend-provided status first
+    if (typeof challengeIdOrObj === 'object' && challengeIdOrObj.solvedByTeam) {
+      return true;
+    }
 
-  const isSelectedChallengeSolved = selectedChallenge ? isSolved(selectedChallenge._id) : false;
+    const id = typeof challengeIdOrObj === 'object' ? challengeIdOrObj._id : challengeIdOrObj;
+    return solvedChallengeIds.has(String(id));
+  };
+
+  const isSelectedChallengeSolved = selectedChallenge ? isSolved(selectedChallenge) : false;
   const isSelectedChallengeCoolingDown =
     !!selectedChallenge?._id && (challengeCooldowns[selectedChallenge._id] || 0) > Date.now();
 
@@ -332,9 +346,9 @@ function Challenges() {
     // Filter by Solve Status
     result = result.filter((challenge) => {
       if (solveFilter === 'Solved') {
-        return isSolved(challenge._id);
+        return isSolved(challenge);
       }
-      return !isSolved(challenge._id);
+      return !isSolved(challenge);
     });
 
     // Sort by Points (High to Low)
@@ -486,7 +500,7 @@ function Challenges() {
                         <div
                           key={challenge._id}
                           className={`cyber-card p-6 cursor-pointer group flex flex-col justify-between ${
-                            isSolved(challenge._id)
+                            isSolved(challenge)
                               ? 'bg-cyber-green/15 border-cyber-green shadow-[0_0_24px_rgba(0,255,65,0.25)]'
                               : 'border-cyber-blue/20'
                           }`}
@@ -531,7 +545,7 @@ function Challenges() {
                                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Points</p>
                             </div>
                             <div className="text-right">
-                              {isSolved(challenge._id) ? (
+                              {isSolved(challenge) ? (
                                 <div className="flex items-center text-cyber-green text-[10px] font-black uppercase tracking-widest">
                                   <div className="w-1.5 h-1.5 bg-cyber-green rounded-full mr-2 animate-pulse"></div>
                                   Solved
@@ -555,7 +569,7 @@ function Challenges() {
                   <div
                     key={challenge._id}
                     className={`cyber-card p-6 cursor-pointer group flex flex-col justify-between ${
-                      isSolved(challenge._id)
+                      isSolved(challenge)
                         ? 'bg-cyber-green/15 border-cyber-green shadow-[0_0_24px_rgba(0,255,65,0.25)]'
                         : 'border-cyber-blue/20'
                     }`}
@@ -600,7 +614,7 @@ function Challenges() {
                          <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Points</p>
                       </div>
                       <div className="text-right">
-                        {isSolved(challenge._id) ? (
+                        {isSolved(challenge) ? (
                           <div className="flex items-center text-cyber-green text-[10px] font-black uppercase tracking-widest">
                             <div className="w-1.5 h-1.5 bg-cyber-green rounded-full mr-2 animate-pulse"></div>
                             Solved

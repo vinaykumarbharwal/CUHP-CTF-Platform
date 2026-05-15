@@ -175,12 +175,7 @@ router.post('/login', [
     }
 
     const now = new Date();
-    if (user.sessionId && user.sessionExpiresAt && user.sessionExpiresAt > now) {
-      return res.status(403).json({ error: 'Already logged in on another device. Please logout from the device where already logged in.' });
-    }
-
     const sessionId = crypto.randomBytes(16).toString('hex');
-    user.sessionId = sessionId;
     
     // Set session expiration based on JWT config
     let expiresInMs = 7 * 24 * 60 * 60 * 1000; // Default 7 days
@@ -193,8 +188,32 @@ router.post('/login', [
       else if (unit === 'h') expiresInMs = val * 60 * 60 * 1000;
       else if (unit === 'd') expiresInMs = val * 24 * 60 * 60 * 1000;
     }
-    user.sessionExpiresAt = new Date(Date.now() + expiresInMs);
-    await user.save();
+    const sessionExpiresAt = new Date(Date.now() + expiresInMs);
+
+    // Atomic session check and update
+    const updatedUser = await User.findOneAndUpdate(
+      {
+        _id: user._id,
+        $or: [
+          { sessionId: { $exists: false } },
+          { sessionId: null },
+          { sessionExpiresAt: { $lte: now } }
+        ]
+      },
+      {
+        $set: {
+          sessionId,
+          sessionExpiresAt
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(403).json({ 
+        error: 'Already logged in on another device. Please logout from the device where already logged in.' 
+      });
+    }
 
     const token = jwt.sign(
       { userId: user._id, username: user.username, role: user.role || 'user', sessionId },

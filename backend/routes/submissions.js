@@ -32,20 +32,20 @@ const submitLimiter = rateLimit({
 router.post('/', [auth, submitLimiter], async (req, res) => {
   try {
     const now = Date.now();
-    const COMPETITION_END = new Date('2026-05-15T16:00:00+05:30').getTime();
+    const COMPETITION_END = require('../utils/ctfSchedule').CTF_CLOSE_DATE.getTime();
     if (!hasChallengesUnlocked(now) && req.userRole !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: 'Challenge submissions open on 15 May 2026 at 10:00 AM IST',
-        releaseAt: '2026-05-15T10:00:00+05:30',
+        error: `Challenge submissions open on ${require('../utils/ctfSchedule').CTF_RELEASE_DATE.toLocaleString('en-IN')} IST`,
+        releaseAt: require('../utils/ctfSchedule').CTF_RELEASE_DATE.toISOString(),
         retryAfterSeconds: getSecondsUntilChallengesUnlock(now)
       });
     }
     if (now > COMPETITION_END && req.userRole !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: 'Challenge submissions closed at 15 May 2026, 4:00 PM IST',
-        closedAt: '2026-05-15T16:00:00+05:30'
+        error: `Challenge submissions closed at ${require('../utils/ctfSchedule').CTF_CLOSE_DATE.toLocaleString('en-IN')} IST`,
+        closedAt: require('../utils/ctfSchedule').CTF_CLOSE_DATE.toISOString()
       });
     }
 
@@ -173,8 +173,9 @@ router.post('/', [auth, submitLimiter], async (req, res) => {
 
     return res.json({
       success: true,
-      message: 'Correct flag!',
-      points: challenge.points,
+      message: existingCorrectSubmission ? 'Already solved by your team!' : 'Correct flag!',
+      alreadySolved: !!existingCorrectSubmission,
+      points: existingCorrectSubmission ? 0 : challenge.points,
       totalScore: finalScore
     });
   } catch (error) {

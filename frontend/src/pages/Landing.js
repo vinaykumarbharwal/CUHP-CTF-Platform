@@ -69,6 +69,7 @@ const Landing = () => {
       case 'crypto': return <Shield className="text-cyber-accent h-8 w-8" />;
       case 'forensic': return <Terminal className="text-cyber-green h-8 w-8" />;
       case 'binary': return <Cpu className="text-red-500 h-8 w-8" />;
+      case 'reverse engineering': return <Cpu className="text-orange-500 h-8 w-8" />;
       default: return <Zap className="text-yellow-500 h-8 w-8" />;
     }
   };
@@ -81,6 +82,7 @@ const Landing = () => {
       case 'binary': return 'Reverse binaries, inspect program logic, and find hidden checks.';
       case 'osint': return 'Track public clues across platforms and connect digital footprints.';
       case 'misc': return 'Solve creative logic puzzles and hybrid security mini-challenges.';
+      case 'reverse engineering': return 'Analyze APKs, scripts, and binaries to reconstruct original logic and keys.';
       default: return 'Hands-on security tasks designed for practical CTF learning.';
     }
   };
