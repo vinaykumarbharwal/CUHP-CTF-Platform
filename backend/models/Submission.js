@@ -34,5 +34,9 @@ submissionSchema.index({ teamId: 1, submittedAt: 1 });
 submissionSchema.index({ teamId: 1, submittedBy: 1 });
 submissionSchema.index({ isCorrect: 1, teamId: 1, challengeId: 1 });
 submissionSchema.index({ submittedBy: 1, challengeId: 1, isCorrect: 1, submittedAt: 1 });
+submissionSchema.index(
+  { teamId: 1, challengeId: 1 },
+  { unique: true, partialFilterExpression: { isCorrect: true } }
+);
 
 module.exports = mongoose.model('Submission', submissionSchema);

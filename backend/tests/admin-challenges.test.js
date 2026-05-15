@@ -56,7 +56,12 @@ test('non-admin cannot update challenge', async () => {
   const findByIdAndUpdateMock = async () => null;
 
   const originalFindByIdAndUpdate = Challenge.findByIdAndUpdate;
+  const originalUserFindById = User.findById;
   Challenge.findByIdAndUpdate = findByIdAndUpdateMock;
+  User.findById = async () => ({
+    _id: new mongoose.Types.ObjectId(),
+    role: 'user'
+  });
 
   const app = createApp();
   const server = app.listen(0);
@@ -77,6 +82,7 @@ test('non-admin cannot update challenge', async () => {
     assert.equal(response.body.error, 'Admin access required');
   } finally {
     Challenge.findByIdAndUpdate = originalFindByIdAndUpdate;
+    User.findById = originalUserFindById;
     await new Promise((resolve) => server.close(resolve));
   }
 });
@@ -95,6 +101,7 @@ test('admin can update challenge fields', async () => {
   };
 
   const originalFindByIdAndUpdate = Challenge.findByIdAndUpdate;
+  const originalUserFindById = User.findById;
   Challenge.findByIdAndUpdate = (id, update) => {
     assert.equal(String(id), challengeId);
     assert.deepEqual(update.$set, {
@@ -110,6 +117,10 @@ test('admin can update challenge fields', async () => {
       select: async () => updatedChallengeDoc
     };
   };
+  User.findById = async () => ({
+    _id: new mongoose.Types.ObjectId(),
+    role: 'admin'
+  });
 
   const app = createApp();
   const server = app.listen(0);
@@ -140,6 +151,7 @@ test('admin can update challenge fields', async () => {
     assert.equal(response.body.challenge.points, 350);
   } finally {
     Challenge.findByIdAndUpdate = originalFindByIdAndUpdate;
+    User.findById = originalUserFindById;
     await new Promise((resolve) => server.close(resolve));
   }
 });
@@ -147,6 +159,7 @@ test('admin can update challenge fields', async () => {
 test('admin can create challenge', async () => {
   const createdId = new mongoose.Types.ObjectId().toString();
   const originalCreate = Challenge.create;
+  const originalUserFindById = User.findById;
 
   Challenge.create = async (payload) => ({
     _id: createdId,
@@ -154,6 +167,10 @@ test('admin can create challenge', async () => {
     toObject() {
       return { _id: createdId, ...payload };
     }
+  });
+  User.findById = async () => ({
+    _id: new mongoose.Types.ObjectId(),
+    role: 'admin'
   });
 
   const app = createApp();
@@ -185,6 +202,7 @@ test('admin can create challenge', async () => {
     assert.equal(response.body.challenge.flag, undefined);
   } finally {
     Challenge.create = originalCreate;
+    User.findById = originalUserFindById;
     await new Promise((resolve) => server.close(resolve));
   }
 });
@@ -193,6 +211,7 @@ test('admin can access challenges before release lock', async () => {
   const originalFind = Challenge.find;
   const originalTeamFind = Team.find;
   const originalAggregate = Submission.aggregate;
+  const originalUserFindById = User.findById;
 
   Challenge.find = () => ({
     lean: async () => ([
@@ -209,6 +228,12 @@ test('admin can access challenges before release lock', async () => {
     lean: async () => []
   });
   Submission.aggregate = async () => [];
+  User.findById = () => ({
+    _id: new mongoose.Types.ObjectId(),
+    role: 'admin',
+    teamId: null,
+    lean: async () => ({ teamId: null })
+  });
 
   const app = createApp();
   const server = app.listen(0);
@@ -231,6 +256,7 @@ test('admin can access challenges before release lock', async () => {
     Challenge.find = originalFind;
     Team.find = originalTeamFind;
     Submission.aggregate = originalAggregate;
+    User.findById = originalUserFindById;
     await new Promise((resolve) => server.close(resolve));
   }
 });
@@ -239,7 +265,9 @@ test('admin can submit flags before release lock', async () => {
   const originalUserFindById = User.findById;
   const originalChallengeFindById = Challenge.findById;
   const originalTeamFindById = Team.findById;
+  const originalTeamFindOneAndUpdate = Team.findOneAndUpdate;
   const originalCountDocuments = Submission.countDocuments;
+  const originalFindOne = Submission.findOne;
   const originalSubmissionSave = Submission.prototype.save;
   const originalTeamSave = Team.prototype.save;
 
@@ -263,7 +291,16 @@ test('admin can submit flags before release lock', async () => {
     flag: 'CUHP{admin_test_flag}'
   });
   Team.findById = async () => mockTeam;
+  Team.findOneAndUpdate = async () => ({
+    _id: teamId,
+    totalScore: 200
+  });
   Submission.countDocuments = async () => 0;
+  Submission.findOne = () => ({
+    select: () => ({
+      lean: async () => null
+    })
+  });
   Submission.prototype.save = async function save() {
     return this;
   };
@@ -296,15 +333,197 @@ test('admin can submit flags before release lock', async () => {
     User.findById = originalUserFindById;
     Challenge.findById = originalChallengeFindById;
     Team.findById = originalTeamFindById;
+    Team.findOneAndUpdate = originalTeamFindOneAndUpdate;
     Submission.countDocuments = originalCountDocuments;
+    Submission.findOne = originalFindOne;
     Submission.prototype.save = originalSubmissionSave;
     Team.prototype.save = originalTeamSave;
     await new Promise((resolve) => server.close(resolve));
   }
 });
 
+test('repeat correct flag returns already solved without saving another submission', async () => {
+  const originalUserFindById = User.findById;
+  const originalChallengeFindById = Challenge.findById;
+  const originalTeamFindById = Team.findById;
+  const originalTeamFindOneAndUpdate = Team.findOneAndUpdate;
+  const originalCountDocuments = Submission.countDocuments;
+  const originalFindOne = Submission.findOne;
+  const originalSubmissionSave = Submission.prototype.save;
+
+  const userId = new mongoose.Types.ObjectId();
+  const teamId = new mongoose.Types.ObjectId();
+  const challengeId = new mongoose.Types.ObjectId();
+  let saveCount = 0;
+
+  const mockTeam = {
+    _id: teamId,
+    totalScore: 200,
+    select: () => ({
+      lean: async () => ({ totalScore: 200 })
+    })
+  };
+
+  User.findById = async () => ({ _id: userId, teamId });
+  Challenge.findById = async () => ({
+    _id: challengeId,
+    points: 200,
+    flag: 'CUHP{repeat_flag}'
+  });
+  Team.findById = () => mockTeam;
+  Team.findOneAndUpdate = async () => {
+    throw new Error('team score must not update for repeat solves');
+  };
+  Submission.countDocuments = async () => 0;
+  Submission.findOne = () => ({
+    select: () => ({
+      lean: async () => ({ _id: new mongoose.Types.ObjectId() })
+    })
+  });
+  Submission.prototype.save = async function save() {
+    saveCount += 1;
+    return this;
+  };
+
+  const app = createApp();
+  const server = app.listen(0);
+
+  const adminToken = jwt.sign(
+    { userId: userId.toString(), username: 'admin', role: 'admin' },
+    jwtConfig.secret,
+    { expiresIn: '1h' }
+  );
+
+  try {
+    const response = await requestJson(server, 'POST', '/api/submit', {
+      token: adminToken,
+      body: {
+        challengeId: challengeId.toString(),
+        flag: 'CUHP{repeat_flag}'
+      }
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body.success, true);
+    assert.equal(response.body.alreadySolved, true);
+    assert.equal(response.body.points, 0);
+    assert.equal(response.body.totalScore, 200);
+    assert.equal(saveCount, 0);
+  } finally {
+    User.findById = originalUserFindById;
+    Challenge.findById = originalChallengeFindById;
+    Team.findById = originalTeamFindById;
+    Team.findOneAndUpdate = originalTeamFindOneAndUpdate;
+    Submission.countDocuments = originalCountDocuments;
+    Submission.findOne = originalFindOne;
+    Submission.prototype.save = originalSubmissionSave;
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test('challenge list marks current user team solves', async () => {
+  const originalFind = Challenge.find;
+  const originalTeamFind = Team.find;
+  const originalAggregate = Submission.aggregate;
+  const originalUserFindById = User.findById;
+  const originalUserFind = User.find;
+
+  const userId = new mongoose.Types.ObjectId();
+  const teamId = new mongoose.Types.ObjectId();
+  const challengeId = new mongoose.Types.ObjectId();
+
+  User.findById = () => ({
+    _id: userId,
+    role: 'admin',
+    teamId,
+    lean: async () => ({ teamId })
+  });
+  User.find = () => ({
+    select: () => ({
+      lean: async () => ([
+        {
+          _id: userId,
+          username: 'admin'
+        }
+      ])
+    })
+  });
+  Challenge.find = () => ({
+    lean: async () => ([
+      {
+        _id: challengeId,
+        title: 'Solved challenge',
+        category: 'Web',
+        difficulty: 'Easy',
+        points: 100
+      }
+    ])
+  });
+  Team.find = () => ({
+    lean: async () => ([
+      {
+        _id: teamId,
+        name: 'Alpha'
+      }
+    ])
+  });
+  Submission.aggregate = async (pipeline) => {
+    const groupStage = pipeline.find((stage) => stage.$group);
+    if (groupStage?.$group?.firstSolverId) {
+      return [
+        {
+          _id: challengeId,
+          firstSolverId: userId
+        }
+      ];
+    }
+
+    return [
+      {
+        _id: {
+          challengeId,
+          teamId
+        }
+      }
+    ];
+  };
+
+  const app = createApp();
+  const server = app.listen(0);
+
+  const adminToken = jwt.sign(
+    { userId: userId.toString(), username: 'admin', role: 'admin' },
+    jwtConfig.secret,
+    { expiresIn: '1h' }
+  );
+
+  try {
+    const response = await requestJson(server, 'GET', '/api/challenges', {
+      token: adminToken
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(response.body[0].solvedByTeam, true);
+    assert.deepEqual(response.body[0].solvedByTeams, ['Alpha']);
+    assert.equal(response.body[0].solvedCount, 1);
+  } finally {
+    Challenge.find = originalFind;
+    Team.find = originalTeamFind;
+    Submission.aggregate = originalAggregate;
+    User.findById = originalUserFindById;
+    User.find = originalUserFind;
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
+
 test('non-admin cannot delete challenge', async () => {
   const challengeId = new mongoose.Types.ObjectId().toString();
+  const originalUserFindById = User.findById;
+  User.findById = async () => ({
+    _id: new mongoose.Types.ObjectId(),
+    role: 'user'
+  });
+
   const app = createApp();
   const server = app.listen(0);
 
@@ -322,6 +541,7 @@ test('non-admin cannot delete challenge', async () => {
     assert.equal(response.status, 403);
     assert.equal(response.body.error, 'Admin access required');
   } finally {
+    User.findById = originalUserFindById;
     await new Promise((resolve) => server.close(resolve));
   }
 });

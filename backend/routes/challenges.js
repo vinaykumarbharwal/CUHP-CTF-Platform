@@ -22,7 +22,8 @@ router.get('/', auth, async (req, res) => {
       });
     }
 
-    const [challenges, teams, firstBloodSubmissions, solvedPairs] = await Promise.all([
+    const [user, challenges, teams, firstBloodSubmissions, solvedPairs] = await Promise.all([
+      User.findById(req.userId, 'teamId').lean(),
       Challenge.find({}, '-flag').lean(),
       Team.find({}, 'name').lean(),
       Submission.aggregate([
@@ -109,7 +110,7 @@ router.get('/', auth, async (req, res) => {
         solvedByTeams,
         solvedCount: solvedByTeams.length,
         firstBlood: firstSolverUsername || null,
-        solvedByTeam: user.teamId ? solvedByTeams.includes(teamNameMap[String(user.teamId)]) : false
+        solvedByTeam: user?.teamId ? solvedByTeams.includes(teamNameMap[String(user.teamId)]) : false
       };
     });
 
