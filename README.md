@@ -1,5 +1,5 @@
 ﻿
-# CUHP CTF Platform
+# CUHP CTF Platform....
 
 ## Overview
 CUHP CTF Platform is a full-stack web application for hosting and managing Capture The Flag (CTF) competitions. It supports team-based play, real-time scoring, challenge management, and a modern user experience for both participants and administrators.
